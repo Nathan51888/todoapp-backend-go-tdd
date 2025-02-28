@@ -2,11 +2,10 @@ package main
 
 import (
 	"log"
-	go_specs_greet "mytodoapp"
+	"mytodoapp/adapters/httpserver"
 	"net/http"
 )
 
 func main() {
-	handler := http.HandlerFunc(go_specs_greet.Handler)
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	log.Fatal(http.ListenAndServe(":8080", httpserver.NewHandler()))
 }
