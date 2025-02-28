@@ -11,7 +11,7 @@ type TodoStoreContract struct {
 }
 
 func (c TodoStoreContract) Test(t *testing.T) {
-	t.Run("can get todo by title from database", func(t *testing.T) {
+	t.Run("can create and get todo by title from database", func(t *testing.T) {
 		sut := c.NewTodoStore()
 
 		want := Todo{Title: "Todo_test", Completed: "false"}

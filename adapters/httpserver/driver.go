@@ -1,7 +1,8 @@
 package httpserver
 
 import (
-	"io"
+	"encoding/json"
+	"mytodoapp/domain/todo"
 	"net/http"
 )
 
@@ -10,16 +11,17 @@ type Driver struct {
 	Client  *http.Client
 }
 
-func (d Driver) GetTodoByTitle(title string) (string, error) {
+func (d Driver) GetTodoByTitle(title string) (todo.Todo, error) {
 	res, err := d.Client.Get(d.BaseURL + "/todo?title=" + title)
 	if err != nil {
-		return "", err
+		return todo.Todo{}, nil
 	}
 	defer res.Body.Close()
 
-	todo, err := io.ReadAll(res.Body)
+	var result todo.Todo
+	err = json.NewDecoder(res.Body).Decode(&result)
 	if err != nil {
-		return "", err
+		return todo.Todo{}, nil
 	}
-	return string(todo), nil
+	return result, nil
 }

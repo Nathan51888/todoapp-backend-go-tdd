@@ -2,9 +2,7 @@ package httpserver
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
-	"mytodoapp/adapters/persistence/inmemory"
 	"mytodoapp/domain/todo"
 	"net/http"
 )
@@ -39,19 +37,4 @@ func (t *TodoServer) GetTodoByTitle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(&result)
-}
-
-func NewHandler() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/todo", handleTodo)
-	return mux
-}
-
-func handleTodo(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Query().Get("title")
-	result, err := inmemory.NewInMemoryTodoStore().GetTodoByTitle(title)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Fprint(w, todo.GetTodoTitle(result))
 }
