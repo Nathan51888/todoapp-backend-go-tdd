@@ -1,4 +1,4 @@
-package httpserver
+package inmemory
 
 import "mytodoapp/domain/todo"
 
