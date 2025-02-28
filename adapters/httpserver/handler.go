@@ -2,17 +2,18 @@ package httpserver
 
 import (
 	"fmt"
-	"mytodoapp/domain/interactions"
+	"mytodoapp/domain/todo"
 	"net/http"
 )
 
 func NewHandler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/test", handleTodo)
+	mux.HandleFunc("/todo", handleTodo)
 	return mux
 }
 
 func handleTodo(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Query().Get("name")
-	fmt.Fprint(w, interactions.Greet(name))
+	// title := r.URL.Query().Get("title")
+	result := todo.Todo{Title: "Todo1", Completed: "true"}
+	fmt.Fprint(w, todo.GetTodoTitle(result))
 }

@@ -10,16 +10,16 @@ type Driver struct {
 	Client  *http.Client
 }
 
-func (d Driver) Greet(name string) (string, error) {
-	res, err := d.Client.Get(d.BaseURL + "/greet?name=" + name)
+func (d Driver) GetTodoByTitle(title string) (string, error) {
+	res, err := d.Client.Get(d.BaseURL + "/todo?title=" + title)
 	if err != nil {
 		return "", err
 	}
 	defer res.Body.Close()
 
-	greeting, err := io.ReadAll(res.Body)
+	todo, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}
-	return string(greeting), nil
+	return string(todo), nil
 }

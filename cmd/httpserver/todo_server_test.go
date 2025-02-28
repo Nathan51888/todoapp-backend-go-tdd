@@ -10,19 +10,19 @@ import (
 	"time"
 )
 
-func TestGreeterServer(t *testing.T) {
+func TestTodoServer(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
 	var (
 		port       = "8080"
-		binToBuild = "httpserver"
 		baseURL    = fmt.Sprintf("http://localhost:%s", port)
+		binToBuild = "httpserver"
 		driver     = httpserver.Driver{BaseURL: baseURL, Client: &http.Client{
 			Timeout: 1 * time.Second,
 		}}
 	)
 
 	adapters.StartDockerServer(t, port, binToBuild)
-	specifications.GreetSpecification(t, driver)
+	specifications.TodoSpecification(t, driver)
 }

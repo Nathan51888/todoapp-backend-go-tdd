@@ -22,7 +22,7 @@ func StartDockerServer(
 	req := testcontainers.ContainerRequest{
 		FromDockerfile: testcontainers.FromDockerfile{
 			Context:    "../../.",
-			Dockerfile: "./cmd/httpserver/Dockerfile",
+			Dockerfile: "Dockerfile",
 			BuildArgs: map[string]*string{
 				"bin_to_build": &binToBuild,
 			},
