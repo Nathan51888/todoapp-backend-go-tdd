@@ -13,7 +13,7 @@ import (
 )
 
 func TestTodoServer(t *testing.T) {
-	t.Run("can get todo by title", func(t *testing.T) {
+	t.Run("GET /todo: can get todo by title", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
 			{Title: "Todo1", Completed: "false"},
 		}})
@@ -29,7 +29,7 @@ func TestTodoServer(t *testing.T) {
 		want := todo.Todo{Title: "Todo1", Completed: "false"}
 		assert.Equal(t, want, got)
 	})
-	t.Run("can create and get todo by title", func(t *testing.T) {
+	t.Run("POST /todo: can create and get todo by title", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{})
 
 		req := httptest.NewRequest(http.MethodPost, "/todo?title=Todo_new", nil)

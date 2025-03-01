@@ -44,7 +44,7 @@ func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 	result, err := t.store.CreateTodo(title)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 
 	json.NewEncoder(w).Encode(result)
