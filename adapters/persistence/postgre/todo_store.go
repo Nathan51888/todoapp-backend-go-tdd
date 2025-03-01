@@ -14,6 +14,7 @@ type PostgreTodoStore struct {
 }
 
 func NewPostgreTodoStore() *PostgreTodoStore {
+	// TODO: use enviroment variables for connection string
 	connString := "postgres://postgres:564@localhost:5432/todo"
 	conn, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
