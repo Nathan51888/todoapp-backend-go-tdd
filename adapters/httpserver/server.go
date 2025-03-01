@@ -22,7 +22,8 @@ func NewTodoServer(store todo.TodoStore) *TodoServer {
 	server.store = store
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/todo", server.GetTodoByTitle)
+	mux.HandleFunc("GET /todo", server.GetTodoByTitle)
+	mux.HandleFunc("POST /todo", server.CreateTodo)
 
 	server.Handler = mux
 
@@ -37,4 +38,14 @@ func (t *TodoServer) GetTodoByTitle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(&result)
+}
+
+func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Query().Get("title")
+	result, err := t.store.CreateTodo(title)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	json.NewEncoder(w).Encode(result)
 }

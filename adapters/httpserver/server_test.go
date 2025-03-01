@@ -29,4 +29,18 @@ func TestTodoServer(t *testing.T) {
 		want := todo.Todo{Title: "Todo1", Completed: "false"}
 		assert.Equal(t, want, got)
 	})
+	t.Run("can create and get todo by title", func(t *testing.T) {
+		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{})
+
+		req := httptest.NewRequest(http.MethodPost, "/todo?title=Todo_new", nil)
+		res := httptest.NewRecorder()
+
+		server.ServeHTTP(res, req)
+
+		var got todo.Todo
+		json.NewDecoder(res.Body).Decode(&got)
+
+		want := todo.Todo{Title: "Todo_new", Completed: "false"}
+		assert.Equal(t, want, got)
+	})
 }
