@@ -3,6 +3,7 @@ package postgre
 import (
 	"context"
 	"fmt"
+	"log"
 	"mytodoapp/domain/todo"
 	"os"
 
@@ -13,19 +14,18 @@ type PostgreTodoStore struct {
 	db *pgx.Conn
 }
 
-func NewPostgreTodoStore() *PostgreTodoStore {
-	// TODO: use enviroment variables for connection string
-	connString := "postgres://postgres:564@localhost:5432/todo"
+func NewPostgreTodoStore(connString string) *PostgreTodoStore {
 	conn, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 	return &PostgreTodoStore{db: conn}
 }
 
 func (p *PostgreTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {
 	var result todo.Todo
-	err := p.db.QueryRow(context.Background(), "SELECT * FROM todos WHERE title = $1", title).Scan(&result.Title, &result.Completed)
+	err := p.db.QueryRow(context.Background(), "SELECT title, completed FROM todos WHERE title = $1", title).Scan(&result.Title, &result.Completed)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			fmt.Fprint(os.Stderr, "No rows")
