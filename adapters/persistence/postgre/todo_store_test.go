@@ -7,7 +7,7 @@ import (
 )
 
 func TestPostgreTodoStore(t *testing.T) {
-	todo.TodoStoreContract{NewTodoStore: func() todo.TodoStore {
+	todo.TodoStoreContract{NewTodoStore: func() (todo.TodoStore, error) {
 		return postgre.NewPostgreTodoStore("postgres://postgres:test@localhost:5433/postgres")
 	}}.Test(t)
 }

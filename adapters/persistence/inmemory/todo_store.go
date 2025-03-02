@@ -8,8 +8,8 @@ type InMemoryTodoStore struct {
 	Todos []todo.Todo
 }
 
-func NewInMemoryTodoStore() *InMemoryTodoStore {
-	return &InMemoryTodoStore{Todos: []todo.Todo{{Title: "Todo_test", Completed: "false"}}}
+func NewInMemoryTodoStore() (*InMemoryTodoStore, error) {
+	return &InMemoryTodoStore{Todos: []todo.Todo{{Title: "Todo_test", Completed: "false"}}}, nil
 }
 
 func (i *InMemoryTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {

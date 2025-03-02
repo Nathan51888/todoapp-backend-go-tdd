@@ -20,7 +20,10 @@ func main() {
 	dbUrl := os.Getenv("DATABASE_URL")
 	fmt.Printf("db url: %s\n", dbUrl)
 
-	store := postgre.NewPostgreTodoStore(dbUrl)
+	store, err := postgre.NewPostgreTodoStore(dbUrl)
+	if err != nil {
+		log.Fatalf("Error creating postgre todo store: %v", err)
+	}
 	server := httpserver.NewTodoServer(store)
 	log.Fatal(http.ListenAndServe(":8080", server))
 }

@@ -7,12 +7,15 @@ import (
 )
 
 type TodoStoreContract struct {
-	NewTodoStore func() TodoStore
+	NewTodoStore func() (TodoStore, error)
 }
 
 func (c TodoStoreContract) Test(t *testing.T) {
 	t.Run("can create, get, update todo by title from database", func(t *testing.T) {
-		sut := c.NewTodoStore()
+		sut, err := c.NewTodoStore()
+		if err != nil {
+			t.Fatalf("Error creating todo store: %v\n", err)
+		}
 
 		want := Todo{Title: "Todo_new", Completed: "false"}
 		newTodo, err := sut.CreateTodo("Todo_new")

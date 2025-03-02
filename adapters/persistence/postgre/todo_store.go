@@ -3,7 +3,6 @@ package postgre
 import (
 	"context"
 	"fmt"
-	"log"
 	"mytodoapp/domain/todo"
 	"os"
 
@@ -14,13 +13,13 @@ type PostgreTodoStore struct {
 	db *pgx.Conn
 }
 
-func NewPostgreTodoStore(connString string) *PostgreTodoStore {
+func NewPostgreTodoStore(connString string) (*PostgreTodoStore, error) {
 	conn, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		return nil, err
 	}
-	return &PostgreTodoStore{db: conn}
+	return &PostgreTodoStore{db: conn}, nil
 }
 
 func (p *PostgreTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {
