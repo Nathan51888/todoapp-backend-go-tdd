@@ -13,15 +13,16 @@ type TodoDriver interface {
 }
 
 func TodoSpecification(t testing.TB, driver TodoDriver) {
-	got, err := driver.GetTodoByTitle("Todo1")
-	want := todo.Todo{Title: "Todo1", Completed: "false"}
+	want := todo.Todo{Title: "Todo_new", Completed: "false"}
+	got, err := driver.CreateTodo("Todo_new")
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
 
+	got, err = driver.GetTodoByTitle("Todo_new")
 	want = todo.Todo{Title: "Todo_new", Completed: "false"}
-	got, err = driver.CreateTodo("Todo_new")
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
+
 	got, err = driver.GetTodoByTitle("Todo_new")
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)

@@ -23,7 +23,9 @@ func CreatePostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 		postgres.WithPassword("postgres"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(5*time.Second)),
+				WithOccurrence(2).WithStartupTimeout(5*time.Second),
+			wait.ForListeningPort("5432/tcp"),
+		),
 	)
 	if err != nil {
 		return nil, err
