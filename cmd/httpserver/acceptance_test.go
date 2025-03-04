@@ -1,13 +1,16 @@
 package main_test
 
 import (
+	"context"
 	"fmt"
-	"mytodoapp/adapters"
 	"mytodoapp/adapters/httpserver"
 	"mytodoapp/specifications"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+	tc "github.com/testcontainers/testcontainers-go/modules/compose"
 )
 
 func TestTodoServer(t *testing.T) {
@@ -15,14 +18,25 @@ func TestTodoServer(t *testing.T) {
 		t.Skip()
 	}
 	var (
-		port       = "8080"
-		baseURL    = fmt.Sprintf("http://localhost:%s", port)
-		binToBuild = "httpserver"
-		driver     = httpserver.Driver{BaseURL: baseURL, Client: &http.Client{
+		port    = "8080"
+		baseURL = fmt.Sprintf("http://localhost:%s", port)
+		driver  = httpserver.Driver{BaseURL: baseURL, Client: &http.Client{
 			Timeout: 1 * time.Second,
 		}}
 	)
 
-	adapters.StartDockerServer(t, port, binToBuild)
+	// TODO:Use dynamic url for containers
+	compose, err := tc.NewDockerCompose("../../compose.yaml")
+	require.NoError(t, err, "NewDockerComposeAPI()")
+
+	t.Cleanup(func() {
+		require.NoError(t, compose.Down(context.Background(), tc.RemoveOrphans(true), tc.RemoveImagesLocal), "compose.Down()")
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	require.NoError(t, compose.Up(ctx, tc.Wait(true)), "compose.Up()")
+
 	specifications.TodoSpecification(t, driver)
 }

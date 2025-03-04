@@ -17,7 +17,7 @@ type PostgresContainer struct {
 func CreatePostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:17",
-		postgres.WithInitScripts("./init_db.sql"),
+		postgres.WithInitScripts("../../../testing/testdata/init_db.sql"),
 		postgres.WithDatabase("test-db"),
 		postgres.WithUsername("postgres"),
 		postgres.WithPassword("postgres"),
