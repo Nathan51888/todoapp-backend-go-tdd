@@ -1,0 +1,55 @@
+services:
+  backend:
+    container_name: backend-c
+    env_file: prod.env
+    build:
+      context: .
+      args:
+        bin_to_build: httpserver
+    ports:
+      - 8080:8080
+    networks:
+      - web
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    container_name: database-c
+    env_file: prod.env
+    image: postgres:17
+    volumes:
+      - ./testing/testdata/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+      - database-v:/var/lib/postgresql/data
+    networks:
+      - web
+      - postgres-db-network
+    healthcheck:
+      test: pg_isready -U postgres -d todoapp
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "teste@teste.com"
+      PGADMIN_DEFAULT_PASSWORD: "teste"
+    ports:
+      - 16543:80
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    networks:
+      - postgres-db-network
+
+volumes:
+  backend-v:
+    name: "backend-v"
+  database-v:
+    name: "database-v"
+
+networks:
+  web:
+    driver: bridge
+  postgres-db-network:
+    driver: bridge

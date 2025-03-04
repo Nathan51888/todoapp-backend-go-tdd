@@ -7,20 +7,19 @@ import (
 	"mytodoapp/adapters/persistence/postgre"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+	dbHost := os.Getenv("POSTGRES_HOST")
+	dbPort := os.Getenv("POSTGRES_PORT")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	dbDatabase := os.Getenv("POSTGRES_DB")
 
-	dbUrl := os.Getenv("DATABASE_URL")
-	fmt.Printf("db url: %s\n", dbUrl)
+	dbConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", dbHost, dbPort, dbDatabase, dbUser, dbPassword)
+	log.Printf("db conn string: %s", dbConnString)
 
-	store, err := postgre.NewPostgreTodoStore(dbUrl)
+	store, err := postgre.NewPostgreTodoStore(dbConnString)
 	if err != nil {
 		log.Fatalf("Error creating postgre todo store: %v", err)
 	}

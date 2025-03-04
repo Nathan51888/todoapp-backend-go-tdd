@@ -34,7 +34,7 @@ func (t *TodoServer) GetTodoByTitle(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 	result, err := t.store.GetTodoByTitle(title)
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("Error GetTodoByTitle(): %v", err)
 	}
 
 	json.NewEncoder(w).Encode(&result)
@@ -44,7 +44,7 @@ func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 	result, err := t.store.CreateTodo(title)
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("Error CreateTodo(): %v", err)
 	}
 
 	json.NewEncoder(w).Encode(result)

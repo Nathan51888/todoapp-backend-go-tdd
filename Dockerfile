@@ -8,8 +8,6 @@ COPY go.mod .
 
 RUN go mod download
 
-COPY .env ./
-
 COPY . .
 
 RUN go build -o svr cmd/${bin_to_build}/main.go

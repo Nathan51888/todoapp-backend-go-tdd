@@ -5,9 +5,9 @@
 -- DROP TABLE public.todos;
 
 CREATE TABLE public.todos (
+    id serial4 NOT NULL,
     title varchar NULL,
     completed varchar NULL,
-    id serial4 NOT NULL,
     CONSTRAINT todos_pk PRIMARY KEY (id)
 );
 
