@@ -11,6 +11,6 @@ CREATE TABLE public.todos (
     CONSTRAINT todos_pk PRIMARY KEY (id)
 );
 
-INSERT INTO public.todos
-(title, completed, id)
-VALUES ('Test_todo', 'false', nextval('todos_id_seq'::regclass));
+-- INSERT INTO public.todos
+-- (title, completed, id)
+-- VALUES ('Test_todo', 'false', nextval('todos_id_seq'::regclass));

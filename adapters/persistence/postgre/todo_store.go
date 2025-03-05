@@ -22,6 +22,29 @@ func NewPostgreTodoStore(connString string) (*PostgreTodoStore, error) {
 	return &PostgreTodoStore{db: conn}, nil
 }
 
+func (p *PostgreTodoStore) GetTodoAll() ([]todo.Todo, error) {
+	rows, err := p.db.Query(context.Background(), "SELECT title, completed FROM todos")
+	if err != nil {
+		log.Printf("Query failed: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []todo.Todo
+	for rows.Next() {
+		var todo todo.Todo
+		if err := rows.Scan(&todo.Title, &todo.Completed); err != nil {
+			return nil, err
+		}
+		result = append(result, todo)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (p *PostgreTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {
 	var result todo.Todo
 	err := p.db.QueryRow(context.Background(), "SELECT title, completed FROM todos WHERE title = $1", title).Scan(&result.Title, &result.Completed)
