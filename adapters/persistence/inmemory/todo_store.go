@@ -38,3 +38,7 @@ func (i *InMemoryTodoStore) UpdateTodoTitle(todoToChange string, title string) (
 	}
 	return result, nil
 }
+
+func (i *InMemoryTodoStore) UpdateTodoStatus(todoToChange string, completed string) (todo.Todo, error) {
+	return todo.Todo{todoToChange, completed}, nil
+}
