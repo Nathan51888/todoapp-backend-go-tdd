@@ -22,7 +22,7 @@ func NewTodoServer(store todo.TodoStore) *TodoServer {
 	server.store = store
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /todo", server.GetTodoByTitle)
+	mux.HandleFunc("GET /todo", server.GetTodo)
 	mux.HandleFunc("POST /todo", server.CreateTodo)
 	mux.HandleFunc("PUT /todo", server.UpdateTodo)
 
@@ -31,14 +31,27 @@ func NewTodoServer(store todo.TodoStore) *TodoServer {
 	return server
 }
 
-func (t *TodoServer) GetTodoByTitle(w http.ResponseWriter, r *http.Request) {
+func (t *TodoServer) GetTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
+
+	if title != "" {
+		t.GetTodoByTitle(w, r, title)
+		return
+	}
+
+	t.GetTodoAll(w, r)
+}
+
+func (t *TodoServer) GetTodoByTitle(w http.ResponseWriter, r *http.Request, title string) {
 	result, err := t.store.GetTodoByTitle(title)
 	if err != nil {
 		log.Printf("Error GetTodoByTitle(): %v", err)
 	}
 
 	json.NewEncoder(w).Encode(&result)
+}
+
+func (t *TodoServer) GetTodoAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {

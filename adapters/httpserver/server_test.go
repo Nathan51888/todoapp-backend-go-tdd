@@ -75,4 +75,21 @@ func TestTodoServer(t *testing.T) {
 		want := todo.Todo{Title: "Todo_new", Completed: "true"}
 		assert.Equal(t, want, got)
 	})
+	t.Run("GET /todo: can get all todos as slice", func(t *testing.T) {
+		want := []todo.Todo{
+			{Title: "Todo1", Completed: "false"},
+			{Title: "Todo2", Completed: "true"},
+			{Title: "Todo3", Completed: "false"},
+		}
+		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: want})
+
+		req := httptest.NewRequest(http.MethodGet, "/todo", nil)
+		res := httptest.NewRecorder()
+
+		server.ServeHTTP(res, req)
+
+		var got []todo.Todo
+		json.NewDecoder(res.Body).Decode(&got)
+		assert.Equal(t, want, got)
+	})
 }
