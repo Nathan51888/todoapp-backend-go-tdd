@@ -17,14 +17,6 @@ func TestTodoServer(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
-	var (
-		port    = "8080"
-		baseURL = fmt.Sprintf("http://localhost:%s", port)
-		driver  = httpserver.Driver{BaseURL: baseURL, Client: &http.Client{
-			Timeout: 1 * time.Second,
-		}}
-	)
-
 	// TODO:Use dynamic url for containers
 	compose, err := tc.NewDockerCompose("../../compose.yaml")
 	require.NoError(t, err, "NewDockerComposeAPI()")
@@ -37,6 +29,14 @@ func TestTodoServer(t *testing.T) {
 	t.Cleanup(cancel)
 
 	require.NoError(t, compose.Up(ctx, tc.Wait(true)), "compose.Up()")
+
+	var (
+		backendPort = "8080"
+		baseURL     = fmt.Sprintf("http://localhost:%s", backendPort)
+		driver      = httpserver.Driver{BaseURL: baseURL, Client: &http.Client{
+			Timeout: 1 * time.Second,
+		}}
+	)
 
 	specifications.TodoSpecification(t, driver)
 }

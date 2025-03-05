@@ -52,13 +52,12 @@ func (t *TodoServer) GetTodoByTitle(w http.ResponseWriter, r *http.Request, titl
 }
 
 func (t *TodoServer) GetTodoAll(w http.ResponseWriter, r *http.Request) {
-	result := []todo.Todo{
-		{"Todo1", "false"},
-		{"Todo2", "true"},
-		{"Todo3", "false"},
+	result, err := t.store.GetTodoAll()
+	if err != nil {
+		log.Printf("Error GetTodoAll(): %v", err)
 	}
 
-	json.NewEncoder(w).Encode(result)
+	json.NewEncoder(w).Encode(&result)
 }
 
 func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
