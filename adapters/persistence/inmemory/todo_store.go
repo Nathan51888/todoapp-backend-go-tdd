@@ -9,7 +9,11 @@ type InMemoryTodoStore struct {
 }
 
 func NewInMemoryTodoStore() (*InMemoryTodoStore, error) {
-	return &InMemoryTodoStore{Todos: []todo.Todo{{Title: "Todo_test", Completed: "false"}}}, nil
+	return &InMemoryTodoStore{}, nil
+}
+
+func (i *InMemoryTodoStore) GetTodoAll() ([]todo.Todo, error) {
+	return i.Todos, nil
 }
 
 func (i *InMemoryTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {

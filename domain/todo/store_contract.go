@@ -41,4 +41,23 @@ func (c TodoStoreContract) Test(t *testing.T) {
 		assert.NoError(t, err, "GetTodoByTitle()")
 		assert.Equal(t, want, got, "GetTodoByTitle()")
 	})
+	t.Run("can get all todos as slice from database", func(t *testing.T) {
+		sut, err := c.NewTodoStore()
+		if err != nil {
+			t.Fatalf("Error creating todo store: %v\n", err)
+		}
+
+		want := []Todo{
+			{Title: "Todo1", Completed: "false"},
+			{Title: "Todo2", Completed: "false"},
+			{Title: "Todo3", Completed: "false"},
+		}
+		sut.CreateTodo("Todo1")
+		sut.CreateTodo("Todo2")
+		sut.CreateTodo("Todo3")
+
+		got, err := sut.GetTodoAll()
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
 }
