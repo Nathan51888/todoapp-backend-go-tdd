@@ -11,7 +11,7 @@ type TodoStoreContract struct {
 }
 
 func (c TodoStoreContract) Test(t *testing.T) {
-	t.Run("can create, get, update todo by title from database", func(t *testing.T) {
+	t.Run("can create, get, update todo's title and status by title from database", func(t *testing.T) {
 		sut, err := c.NewTodoStore()
 		if err != nil {
 			t.Fatalf("Error creating todo store: %v\n", err)
@@ -32,5 +32,13 @@ func (c TodoStoreContract) Test(t *testing.T) {
 		got, err = sut.GetTodoByTitle("Todo_updated")
 		assert.NoError(t, err)
 		assert.Equal(t, want, got)
+
+		want = Todo{Title: "Todo_updated", Completed: "true"}
+		updatedTodo, err = sut.UpdateTodoStatus("Todo_updated", "true")
+		assert.NoError(t, err, "UpdateTodoStatus()")
+		assert.Equal(t, want, updatedTodo, "UpdateTodoStatus()")
+		got, err = sut.GetTodoByTitle("Todo_updated")
+		assert.NoError(t, err, "GetTodoByTitle()")
+		assert.Equal(t, want, got, "GetTodoByTitle()")
 	})
 }

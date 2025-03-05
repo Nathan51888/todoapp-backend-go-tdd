@@ -52,3 +52,12 @@ func (p *PostgreTodoStore) UpdateTodoTitle(todoToChange string, title string) (t
 	}
 	return todo.Todo{Title: title, Completed: "false"}, nil
 }
+
+func (p *PostgreTodoStore) UpdateTodoStatus(todoToChange string, completed string) (todo.Todo, error) {
+	_, err := p.db.Exec(context.Background(), "UPDATE todos SET completed = $1 WHERE title = $2", completed, todoToChange)
+	if err != nil {
+		log.Printf("Exec failed: %v", err)
+		return todo.Todo{}, err
+	}
+	return todo.Todo{Title: todoToChange, Completed: completed}, nil
+}

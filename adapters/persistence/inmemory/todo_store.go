@@ -40,5 +40,12 @@ func (i *InMemoryTodoStore) UpdateTodoTitle(todoToChange string, title string) (
 }
 
 func (i *InMemoryTodoStore) UpdateTodoStatus(todoToChange string, completed string) (todo.Todo, error) {
-	return todo.Todo{todoToChange, completed}, nil
+	var result todo.Todo
+	for index, todo := range i.Todos {
+		if todo.Title == todoToChange {
+			i.Todos[index].Completed = completed
+			result = i.Todos[index]
+		}
+	}
+	return result, nil
 }
