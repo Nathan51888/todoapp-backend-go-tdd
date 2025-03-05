@@ -59,4 +59,20 @@ func TestTodoServer(t *testing.T) {
 		want := todo.Todo{Title: "Todo_updated", Completed: "false"}
 		assert.Equal(t, want, got)
 	})
+	t.Run("PUT /todo: can update todo's status by title", func(t *testing.T) {
+		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Title: "Todo_new", Completed: "false"},
+		}})
+
+		req := httptest.NewRequest(http.MethodPut, "/todo?target=Todo_new&completed=true", nil)
+		res := httptest.NewRecorder()
+
+		server.ServeHTTP(res, req)
+
+		var got todo.Todo
+		json.NewDecoder(res.Body).Decode(&got)
+
+		want := todo.Todo{Title: "Todo_new", Completed: "true"}
+		assert.Equal(t, want, got)
+	})
 }
