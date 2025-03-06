@@ -18,9 +18,8 @@ func CreatePostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:17",
 		postgres.WithInitScripts("../../../testing/testdata/init_db.sql"),
-		postgres.WithDatabase("test-db"),
 		postgres.WithUsername("postgres"),
-		postgres.WithPassword("postgres"),
+		postgres.WithPassword("test"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).WithStartupTimeout(5*time.Second),
