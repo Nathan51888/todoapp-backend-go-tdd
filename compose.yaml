@@ -30,7 +30,6 @@ services:
     image: postgres:17
     volumes:
       - ./testing/testdata/init_db.sql:/docker-entrypoint-initdb.d/init.sql
-      - database-v:/var/lib/postgresql/data
     networks:
       - web
     healthcheck:
@@ -38,12 +37,6 @@ services:
       interval: 1s
       timeout: 5s
       retries: 10
-
-volumes:
-  backend-v:
-    name: "backend-v"
-  database-v:
-    name: "database-v"
 
 networks:
   web:
