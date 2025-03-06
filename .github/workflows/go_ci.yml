@@ -23,7 +23,7 @@ jobs:
     
     - name: Set up environment variables
       run: |
-        tounch prod.env
+        touch prod.env
         echo "${{ secrets.TEST_SECRETS }}" >> prod.env
 
     - name: Build
