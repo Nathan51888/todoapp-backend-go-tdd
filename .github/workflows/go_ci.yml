@@ -20,6 +20,11 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.24'
+    
+    - name: Set up environment variables
+      run: |
+        tounch prod.env
+        echo "${{ secrets.TEST_SECRETS }}" >> prod.env
 
     - name: Build
       run: go build -v ./...
