@@ -34,6 +34,9 @@ func NewTodoServer(store todo.TodoStore) *TodoServer {
 func (t *TodoServer) GetTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	if title != "" {
 		t.GetTodoByTitle(w, r, title)
 		return
