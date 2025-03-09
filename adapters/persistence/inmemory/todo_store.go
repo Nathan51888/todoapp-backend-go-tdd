@@ -26,16 +26,27 @@ func (i *InMemoryTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {
 	return result, nil
 }
 
+func (i *InMemoryTodoStore) GetTodoById(todoId int) (todo.Todo, error) {
+	var result todo.Todo
+	for _, item := range i.Todos {
+		if item.Id == todoId {
+			result = item
+		}
+	}
+	return result, nil
+}
+
 func (i *InMemoryTodoStore) CreateTodo(title string) (todo.Todo, error) {
-	createdTodo := todo.Todo{Title: title, Completed: "false"}
+	createdTodo := todo.Todo{Title: title, Completed: false}
+	createdTodo.Id = len(i.Todos) + 1
 	i.Todos = append(i.Todos, createdTodo)
 	return createdTodo, nil
 }
 
-func (i *InMemoryTodoStore) UpdateTodoTitle(todoToChange string, title string) (todo.Todo, error) {
+func (i *InMemoryTodoStore) UpdateTodoTitle(todoId int, title string) (todo.Todo, error) {
 	var result todo.Todo
 	for index, todo := range i.Todos {
-		if todo.Title == todoToChange {
+		if todo.Id == todoId {
 			i.Todos[index].Title = title
 			result = i.Todos[index]
 		}
@@ -43,11 +54,22 @@ func (i *InMemoryTodoStore) UpdateTodoTitle(todoToChange string, title string) (
 	return result, nil
 }
 
-func (i *InMemoryTodoStore) UpdateTodoStatus(todoToChange string, completed string) (todo.Todo, error) {
+func (i *InMemoryTodoStore) UpdateTodoStatus(todoId int, completed bool) (todo.Todo, error) {
 	var result todo.Todo
 	for index, todo := range i.Todos {
-		if todo.Title == todoToChange {
+		if todo.Id == todoId {
 			i.Todos[index].Completed = completed
+			result = i.Todos[index]
+		}
+	}
+	return result, nil
+}
+
+func (i *InMemoryTodoStore) UpdateTodoById(todoId int, changedTodo todo.Todo) (todo.Todo, error) {
+	var result todo.Todo
+	for index, item := range i.Todos {
+		if item.Id == todoId {
+			i.Todos[index] = changedTodo
 			result = i.Todos[index]
 		}
 	}

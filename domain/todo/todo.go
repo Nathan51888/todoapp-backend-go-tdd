@@ -1,6 +1,7 @@
 package todo
 
 type Todo struct {
-	Title     string
-	Completed string
+	Id        int    `json:"id"`
+	Title     string `json:"title"`
+	Completed bool   `json:"completed"`
 }

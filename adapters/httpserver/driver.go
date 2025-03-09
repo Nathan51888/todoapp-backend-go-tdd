@@ -39,5 +39,5 @@ func (d Driver) CreateTodo(title string) (todo.Todo, error) {
 		return todo.Todo{}, err
 	}
 
-	return todo.Todo{Title: "Todo_new", Completed: "false"}, nil
+	return todo.Todo{Title: "Todo_new", Completed: false}, nil
 }

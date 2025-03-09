@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TodoStoreContract struct {
@@ -18,9 +19,9 @@ func (c TodoStoreContract) Test(t *testing.T) {
 		}
 
 		want := []Todo{
-			{Title: "Todo1", Completed: "false"},
-			{Title: "Todo2", Completed: "false"},
-			{Title: "Todo3", Completed: "false"},
+			{Title: "Todo1", Completed: false},
+			{Title: "Todo2", Completed: false},
+			{Title: "Todo3", Completed: false},
 		}
 		sut.CreateTodo("Todo1")
 		sut.CreateTodo("Todo2")
@@ -28,7 +29,14 @@ func (c TodoStoreContract) Test(t *testing.T) {
 
 		got, err := sut.GetTodoAll()
 		assert.NoError(t, err)
-		assert.Equal(t, want, got)
+		for index, item := range got {
+			if item.Title != want[index].Title {
+				t.Fatal("title not equal")
+			}
+			if item.Completed != want[index].Completed {
+				t.Fatal("completed not equal")
+			}
+		}
 	})
 	t.Run("can create, get, update todo's title and status by title from database", func(t *testing.T) {
 		sut, err := c.NewTodoStore()
@@ -36,28 +44,50 @@ func (c TodoStoreContract) Test(t *testing.T) {
 			t.Fatalf("Error creating todo store: %v\n", err)
 		}
 
-		want := Todo{Title: "Todo_new", Completed: "false"}
+		want := Todo{Title: "Todo_new", Completed: false}
 		newTodo, err := sut.CreateTodo("Todo_new")
 		assert.NoError(t, err)
-		assert.Equal(t, want, newTodo)
+		assert.Equal(t, want.Title, newTodo.Title)
+		assert.Equal(t, want.Completed, newTodo.Completed)
 		got, err := sut.GetTodoByTitle("Todo_new")
 		assert.NoError(t, err)
-		assert.Equal(t, want, got)
+		assert.Equal(t, newTodo, got)
 
-		want = Todo{Title: "Todo_updated", Completed: "false"}
-		updatedTodo, err := sut.UpdateTodoTitle("Todo_new", "Todo_updated")
+		want = Todo{Id: got.Id, Title: "Todo_updated", Completed: got.Completed}
+		updatedTodo, err := sut.UpdateTodoTitle(want.Id, "Todo_updated")
 		assert.NoError(t, err)
 		assert.Equal(t, want, updatedTodo)
 		got, err = sut.GetTodoByTitle("Todo_updated")
 		assert.NoError(t, err)
 		assert.Equal(t, want, got)
 
-		want = Todo{Title: "Todo_updated", Completed: "true"}
-		updatedTodo, err = sut.UpdateTodoStatus("Todo_updated", "true")
-		assert.NoError(t, err, "UpdateTodoStatus()")
-		assert.Equal(t, want, updatedTodo, "UpdateTodoStatus()")
+		want = Todo{Id: got.Id, Title: "Todo_updated", Completed: true}
+		updatedTodo, err = sut.UpdateTodoStatus(want.Id, true)
+		assert.NoError(t, err)
+		assert.Equal(t, want, updatedTodo)
 		got, err = sut.GetTodoByTitle("Todo_updated")
-		assert.NoError(t, err, "GetTodoByTitle()")
-		assert.Equal(t, want, got, "GetTodoByTitle()")
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
+	t.Run("can update todo by id", func(t *testing.T) {
+		sut, err := c.NewTodoStore()
+		require.NoError(t, err)
+
+		want := Todo{Title: "Todo_new", Completed: false}
+		newTodo, err := sut.CreateTodo("Todo_new")
+		assert.NoError(t, err)
+		assert.Equal(t, want.Title, newTodo.Title)
+		assert.Equal(t, want.Completed, newTodo.Completed)
+		got, err := sut.GetTodoById(newTodo.Id)
+		assert.NoError(t, err)
+		assert.Equal(t, newTodo, got, "GetTodoById()")
+
+		want = Todo{Id: got.Id, Title: "Todo_updated", Completed: true}
+		updatedTodo, err := sut.UpdateTodoById(want.Id, want)
+		assert.NoError(t, err)
+		assert.Equal(t, want, updatedTodo, "UpdateTodoById()")
+		got, err = sut.GetTodoById(updatedTodo.Id)
+		assert.NoError(t, err)
+		assert.Equal(t, want, got, "GetTodoById()")
 	})
 }

@@ -7,7 +7,7 @@
 CREATE TABLE public.todos (
     id serial4 NOT NULL,
     title varchar NULL,
-    completed varchar NULL,
+    completed boolean,
     CONSTRAINT todos_pk PRIMARY KEY (id)
 );
 
