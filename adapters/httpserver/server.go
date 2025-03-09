@@ -3,6 +3,7 @@ package httpserver
 import (
 	"encoding/json"
 	"log"
+	"mytodoapp/adapters/httpserver/middleware"
 	"mytodoapp/domain/todo"
 	"net/http"
 	"strconv"
@@ -27,7 +28,11 @@ func NewTodoServer(store todo.TodoStore) *TodoServer {
 	mux.HandleFunc("POST /todo", server.CreateTodo)
 	mux.HandleFunc("PUT /todo", server.UpdateTodo)
 
-	server.Handler = mux
+	stack := middleware.CreateStack(
+		middleware.AllowCors,
+	)
+
+	server.Handler = stack(mux)
 
 	return server
 }
@@ -35,9 +40,6 @@ func NewTodoServer(store todo.TodoStore) *TodoServer {
 func (t *TodoServer) GetTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 	id := r.URL.Query().Get("id")
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if title != "" {
 		t.GetTodoByTitle(w, r, title)
@@ -92,7 +94,8 @@ func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error CreateTodo(): %v", err)
 		}
-		json.NewEncoder(w).Encode(result)
+		w.Header().Add("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(&result)
 		return
 	}
 
@@ -104,7 +107,8 @@ func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error CreateTodo(): %v", err)
 	}
 
-	json.NewEncoder(w).Encode(result)
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(&result)
 }
 
 func (t *TodoServer) UpdateTodo(w http.ResponseWriter, r *http.Request) {
