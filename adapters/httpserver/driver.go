@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"mytodoapp/domain/todo"
 	"net/http"
+	"strconv"
 )
 
 type Driver struct {
@@ -11,8 +12,8 @@ type Driver struct {
 	Client  *http.Client
 }
 
-func (d Driver) GetTodoByTitle(title string) (todo.Todo, error) {
-	res, err := d.Client.Get(d.BaseURL + "/todo?title=" + title)
+func (d Driver) GetTodoById(id int) (todo.Todo, error) {
+	res, err := d.Client.Get(d.BaseURL + "/todo?id=" + strconv.Itoa(id))
 	if err != nil {
 		return todo.Todo{}, err
 	}
@@ -39,5 +40,5 @@ func (d Driver) CreateTodo(title string) (todo.Todo, error) {
 		return todo.Todo{}, err
 	}
 
-	return todo.Todo{Title: "Todo_new", Completed: false}, nil
+	return result, nil
 }
