@@ -131,7 +131,11 @@ func (t *TodoServer) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		log.Printf("DeleteTodo: %v", err)
 		return
 	}
-	result := todo.Todo{Id: id, Title: "Delete this", Completed: false}
+	result, err := t.store.DeleteTodoById(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("DeleteTodo: %v", err)
+	}
 
 	json.NewEncoder(w).Encode(result)
 }

@@ -23,7 +23,7 @@ func NewPostgreTodoStore(connString string) (*PostgreTodoStore, error) {
 }
 
 func (p *PostgreTodoStore) GetTodoAll() ([]todo.Todo, error) {
-	rows, err := p.db.Query(context.Background(), "SELECT title, completed FROM todos")
+	rows, err := p.db.Query(context.Background(), "SELECT id, title, completed FROM todos")
 	if err != nil {
 		log.Printf("Query failed: %v", err)
 		return nil, err
@@ -33,7 +33,7 @@ func (p *PostgreTodoStore) GetTodoAll() ([]todo.Todo, error) {
 	var result []todo.Todo
 	for rows.Next() {
 		var todo todo.Todo
-		if err := rows.Scan(&todo.Title, &todo.Completed); err != nil {
+		if err := rows.Scan(&todo.Id, &todo.Title, &todo.Completed); err != nil {
 			return nil, err
 		}
 		result = append(result, todo)
@@ -73,7 +73,7 @@ func (p *PostgreTodoStore) GetTodoById(todoId int) (todo.Todo, error) {
 
 func (p *PostgreTodoStore) CreateTodo(title string) (todo.Todo, error) {
 	var result todo.Todo
-	err := p.db.QueryRow(context.Background(), "INSERT INTO todos (title, completed) VALUES ($1, 'false') RETURNING id", title).Scan(&result.Id)
+	err := p.db.QueryRow(context.Background(), "INSERT INTO todos (id, title, completed) VALUES (DEFAULT, $1, 'false') RETURNING id", title).Scan(&result.Id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			log.Println("CreateTodo(): No rows")
