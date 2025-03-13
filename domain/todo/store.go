@@ -8,4 +8,5 @@ type TodoStore interface {
 	UpdateTodoTitle(todoId int, title string) (Todo, error)
 	UpdateTodoStatus(todoId int, completed bool) (Todo, error)
 	UpdateTodoById(todoId int, changedTodo Todo) (Todo, error)
+	DeleteTodoById(todoId int) (Todo, error)
 }

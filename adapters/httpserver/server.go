@@ -27,6 +27,7 @@ func NewTodoServer(store todo.TodoStore) *TodoServer {
 	mux.HandleFunc("GET /todo", server.GetTodo)
 	mux.HandleFunc("POST /todo", server.CreateTodo)
 	mux.HandleFunc("PUT /todo", server.UpdateTodo)
+	mux.HandleFunc("DELETE /todo", server.DeleteTodo)
 
 	stack := middleware.CreateStack(
 		middleware.AllowCors,
@@ -121,4 +122,16 @@ func (t *TodoServer) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	json.NewEncoder(w).Encode(&result)
+}
+
+func (t *TodoServer) DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("DeleteTodo: %v", err)
+		return
+	}
+	result := todo.Todo{Id: id, Title: "Delete this", Completed: false}
+
+	json.NewEncoder(w).Encode(result)
 }

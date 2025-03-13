@@ -116,3 +116,13 @@ func (p *PostgreTodoStore) UpdateTodoById(todoId int, todoToChange todo.Todo) (t
 	}
 	return todoToChange, nil
 }
+
+func (p *PostgreTodoStore) DeleteTodoById(todoId int) (todo.Todo, error) {
+	var result todo.Todo
+	err := p.db.QueryRow(context.Background(), "DELETE FROM todos WHERE id = $1 RETURNING id, title, completed", todoId).Scan(&result.Id, &result.Title, &result.Completed)
+	if err != nil {
+		log.Printf("DeleteTodoById(): QueryRow failed: %v", err)
+		return todo.Todo{}, err
+	}
+	return result, nil
+}

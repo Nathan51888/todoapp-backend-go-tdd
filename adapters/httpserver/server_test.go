@@ -130,4 +130,19 @@ func TestTodoServer(t *testing.T) {
 		json.NewDecoder(res.Body).Decode(&got)
 		assert.Equal(t, want, got)
 	})
+	t.Run("DELETE /todo: can delete todo by id", func(t *testing.T) {
+		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Id: 8, Title: "Delete this", Completed: false},
+		}})
+
+		req := httptest.NewRequest(http.MethodDelete, "/todo?id=8", nil)
+		res := httptest.NewRecorder()
+
+		server.ServeHTTP(res, req)
+
+		want := todo.Todo{Id: 8, Title: "Delete this", Completed: false}
+		var got todo.Todo
+		json.NewDecoder(res.Body).Decode(&got)
+		assert.Equal(t, want, got)
+	})
 }

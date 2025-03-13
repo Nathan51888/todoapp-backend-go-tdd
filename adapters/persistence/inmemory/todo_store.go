@@ -1,7 +1,9 @@
 package inmemory
 
 import (
+	"errors"
 	"mytodoapp/domain/todo"
+	"slices"
 )
 
 type InMemoryTodoStore struct {
@@ -31,9 +33,11 @@ func (i *InMemoryTodoStore) GetTodoById(todoId int) (todo.Todo, error) {
 	for _, item := range i.Todos {
 		if item.Id == todoId {
 			result = item
+			return result, nil
 		}
 	}
-	return result, nil
+
+	return todo.Todo{}, errors.New("todo not found")
 }
 
 func (i *InMemoryTodoStore) CreateTodo(title string) (todo.Todo, error) {
@@ -74,4 +78,14 @@ func (i *InMemoryTodoStore) UpdateTodoById(todoId int, changedTodo todo.Todo) (t
 		}
 	}
 	return result, nil
+}
+
+func (i *InMemoryTodoStore) DeleteTodoById(todoId int) (todo.Todo, error) {
+	for index, item := range i.Todos {
+		if item.Id == todoId {
+			i.Todos = slices.Delete(i.Todos, index, index+1)
+			return todo.Todo{Id: todoId, Title: "Delete_this", Completed: false}, nil
+		}
+	}
+	return todo.Todo{}, errors.New("todo not found")
 }

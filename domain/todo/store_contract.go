@@ -90,4 +90,26 @@ func (c TodoStoreContract) Test(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, want, got, "GetTodoById()")
 	})
+	t.Run("can delete todo by id", func(t *testing.T) {
+		sut, err := c.NewTodoStore()
+		require.NoError(t, err)
+
+		// TODO: dry it with function
+		want := Todo{Title: "Delete_this", Completed: false}
+		newTodo, err := sut.CreateTodo("Delete_this")
+		assert.NoError(t, err)
+		assert.Equal(t, want.Title, newTodo.Title)
+		assert.Equal(t, want.Completed, newTodo.Completed)
+		got, err := sut.GetTodoById(newTodo.Id)
+		assert.NoError(t, err)
+		assert.Equal(t, newTodo, got, "GetTodoById()")
+
+		want = Todo{Id: got.Id, Title: "Delete_this", Completed: false}
+		deletedTodo, err := sut.DeleteTodoById(want.Id)
+		assert.NoError(t, err, "DeleteTodoById()")
+		assert.Equal(t, want, deletedTodo, "DeleteTodoById()")
+		got, err = sut.GetTodoById(want.Id)
+		assert.Error(t, err, "GetTodoById()")
+		assert.NotEqual(t, want, got, "GetTodoById()")
+	})
 }
