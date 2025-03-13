@@ -95,7 +95,7 @@ func TestTodoServer(t *testing.T) {
 		json.NewDecoder(res.Body).Decode(&got)
 		assert.Equal(t, want, got)
 	})
-	t.Run("PUT /todo: can update todo's status by title", func(t *testing.T) {
+	t.Run("PUT /todo: can update todo's status by id with body", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
 			{Id: 5, Title: "Todo_new", Completed: false},
 		}})
