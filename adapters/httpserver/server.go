@@ -113,9 +113,57 @@ func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *TodoServer) UpdateTodo(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	title := r.URL.Query().Get("title")
+	completed := r.URL.Query().Get("completed")
+
+	if title != "" {
+		if id == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		id, err := strconv.Atoi(id)
+		if err != nil {
+			log.Printf("Error parsing id string: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		result, err := t.store.UpdateTodoTitle(id, title)
+		if err != nil {
+			log.Printf("Error UpdateTodoById(): %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		json.NewEncoder(w).Encode(&result)
+		return
+	}
+
+	if completed != "" {
+		if id == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		id, err := strconv.Atoi(id)
+		if err != nil {
+			log.Printf("Error parsing id string: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		completed, err := strconv.ParseBool(completed)
+		if err != nil {
+			log.Printf("Error parsing completed string to bool: %v", err)
+		}
+		result, err := t.store.UpdateTodoStatus(id, completed)
+		if err != nil {
+			log.Printf("Error UpdateTodoById(): %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		json.NewEncoder(w).Encode(&result)
+		return
+	}
+
+	// json body
 	var body todo.Todo
 	json.NewDecoder(r.Body).Decode(&body)
-
 	result, err := t.store.UpdateTodoById(body.Id, body)
 	if err != nil {
 		log.Printf("Error UpdateTodoById(): %v", err)
