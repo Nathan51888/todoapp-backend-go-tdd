@@ -6,6 +6,8 @@ import (
 	"mytodoapp/domain/todo"
 	"net/http"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type TodoHandler struct {
@@ -49,7 +51,7 @@ func (t *TodoHandler) GetTodoByTitle(w http.ResponseWriter, r *http.Request, tit
 }
 
 func (t *TodoHandler) GetTodoById(w http.ResponseWriter, r *http.Request, idString string) {
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(idString)
 	if err != nil {
 		log.Printf("Error converting string to int: %v", err)
 	}
@@ -112,7 +114,7 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		id, err := strconv.Atoi(id)
+		id, err := uuid.Parse(id)
 		if err != nil {
 			log.Printf("Error parsing id string: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -132,7 +134,7 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		id, err := strconv.Atoi(id)
+		id, err := uuid.Parse(id)
 		if err != nil {
 			log.Printf("Error parsing id string: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -163,7 +165,7 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := uuid.Parse(r.URL.Query().Get("id"))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("DeleteTodo: %v", err)

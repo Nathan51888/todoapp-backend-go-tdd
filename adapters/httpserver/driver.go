@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"mytodoapp/domain/todo"
 	"net/http"
-	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Driver struct {
@@ -12,8 +13,8 @@ type Driver struct {
 	Client  *http.Client
 }
 
-func (d Driver) GetTodoById(id int) (todo.Todo, error) {
-	res, err := d.Client.Get(d.BaseURL + "/todo?id=" + strconv.Itoa(id))
+func (d Driver) GetTodoById(id uuid.UUID) (todo.Todo, error) {
+	res, err := d.Client.Get(d.BaseURL + "/todo?id=" + id.String())
 	if err != nil {
 		return todo.Todo{}, err
 	}
