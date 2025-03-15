@@ -1,5 +1,5 @@
 package user
 
 type UserStore interface {
-	GetUser()
+	RegisterUser(email string, password string) error
 }

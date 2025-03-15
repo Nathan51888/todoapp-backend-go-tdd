@@ -15,7 +15,7 @@ import (
 func TestUserHandler(t *testing.T) {
 	t.Run("can create user", func(t *testing.T) {
 		mux := http.NewServeMux()
-		store := &inmemory.InmemoryUserStore{}
+		store := &inmemory.InMemoryUserStore{}
 		handler.NewUserHandler(mux, store)
 
 		payloadBuff := new(bytes.Buffer)
