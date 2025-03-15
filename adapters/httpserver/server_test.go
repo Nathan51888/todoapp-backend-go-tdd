@@ -77,6 +77,16 @@ func TestTodoServer(t *testing.T) {
 		assert.Equal(t, want.Title, got.Title)
 		assert.Equal(t, want.Completed, got.Completed)
 	})
+	t.Run("POST /todo?title: cannot create todo with empty title", func(t *testing.T) {
+		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{})
+
+		req := httptest.NewRequest(http.MethodPost, "/todo?title=", nil)
+		res := httptest.NewRecorder()
+
+		server.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode)
+	})
 	t.Run("PUT /todo: can update todo title by todo id", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
 			{Id: 5, Title: "Todo_new", Completed: false},

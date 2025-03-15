@@ -90,6 +90,23 @@ func (t *TodoServer) GetTodoAll(w http.ResponseWriter, r *http.Request) {
 func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 
+	var body todo.Todo
+	json.NewDecoder(r.Body).Decode(&body)
+	if body.Title != "" {
+		result, err := t.store.CreateTodo(body.Title)
+		if err != nil {
+			log.Printf("Error CreateTodo(): %v", err)
+		}
+
+		w.Header().Add("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(&result)
+	}
+
+	if title == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	if title != "" {
 		result, err := t.store.CreateTodo(title)
 		if err != nil {
@@ -99,17 +116,6 @@ func (t *TodoServer) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(&result)
 		return
 	}
-
-	var body todo.Todo
-	json.NewDecoder(r.Body).Decode(&body)
-
-	result, err := t.store.CreateTodo(body.Title)
-	if err != nil {
-		log.Printf("Error CreateTodo(): %v", err)
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
 }
 
 func (t *TodoServer) UpdateTodo(w http.ResponseWriter, r *http.Request) {
