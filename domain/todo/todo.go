@@ -1,7 +1,9 @@
 package todo
 
+import "github.com/google/uuid"
+
 type Todo struct {
-	Id        int    `json:"id"`
-	Title     string `json:"title"`
-	Completed bool   `json:"completed"`
+	Id        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	Completed bool      `json:"completed"`
 }

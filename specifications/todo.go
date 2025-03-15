@@ -4,11 +4,12 @@ import (
 	"mytodoapp/domain/todo"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 type TodoDriver interface {
-	GetTodoById(id int) (todo.Todo, error)
+	GetTodoById(id uuid.UUID) (todo.Todo, error)
 	CreateTodo(title string) (todo.Todo, error)
 }
 

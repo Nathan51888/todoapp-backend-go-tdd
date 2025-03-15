@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,11 +32,12 @@ func TestGET(t *testing.T) {
 		assert.Equal(t, want, got)
 	})
 	t.Run("GET /todo: can get todo by id", func(t *testing.T) {
+		id := uuid.New()
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-			{Id: 3, Title: "Todo1", Completed: false},
+			{Id: id, Title: "Todo1", Completed: false},
 		}})
 
-		req := httptest.NewRequest(http.MethodGet, "/todo?id=3", nil)
+		req := httptest.NewRequest(http.MethodGet, "/todo?id="+id.String(), nil)
 		res := httptest.NewRecorder()
 
 		server.ServeHTTP(res, req)
@@ -43,7 +45,7 @@ func TestGET(t *testing.T) {
 		var got todo.Todo
 		json.NewDecoder(res.Body).Decode(&got)
 
-		want := todo.Todo{Id: 3, Title: "Todo1", Completed: false}
+		want := todo.Todo{Id: id, Title: "Todo1", Completed: false}
 		assert.Equal(t, want, got)
 	})
 	t.Run("GET /todo: can get all todos as slice", func(t *testing.T) {
@@ -111,11 +113,12 @@ func TestPOST(t *testing.T) {
 
 func TestPUT(t *testing.T) {
 	t.Run("PUT /todo: can update todo title by todo id", func(t *testing.T) {
+		id := uuid.New()
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-			{Id: 5, Title: "Todo_new", Completed: false},
+			{Id: id, Title: "Todo_new", Completed: false},
 		}})
 
-		want := todo.Todo{Id: 5, Title: "Todo_updated", Completed: false}
+		want := todo.Todo{Id: id, Title: "Todo_updated", Completed: false}
 
 		payloadBuf := new(bytes.Buffer)
 		json.NewEncoder(payloadBuf).Encode(want)
@@ -129,11 +132,12 @@ func TestPUT(t *testing.T) {
 		assert.Equal(t, want, got)
 	})
 	t.Run("PUT /todo: can update todo's status by id with body", func(t *testing.T) {
+		id := uuid.New()
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-			{Id: 5, Title: "Todo_new", Completed: false},
+			{Id: id, Title: "Todo_new", Completed: false},
 		}})
 
-		want := todo.Todo{Id: 5, Title: "Todo_new", Completed: true}
+		want := todo.Todo{Id: id, Title: "Todo_new", Completed: true}
 
 		payloadBuf := new(bytes.Buffer)
 		json.NewEncoder(payloadBuf).Encode(want)
@@ -150,16 +154,17 @@ func TestPUT(t *testing.T) {
 
 func TestDELETE(t *testing.T) {
 	t.Run("DELETE /todo: can delete todo by id", func(t *testing.T) {
+		id := uuid.New()
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-			{Id: 8, Title: "Delete_this", Completed: false},
+			{Id: id, Title: "Delete_this", Completed: false},
 		}})
 
-		req := httptest.NewRequest(http.MethodDelete, "/todo?id=8", nil)
+		req := httptest.NewRequest(http.MethodDelete, "/todo?id="+id.String(), nil)
 		res := httptest.NewRecorder()
 
 		server.ServeHTTP(res, req)
 
-		want := todo.Todo{Id: 8, Title: "Delete_this", Completed: false}
+		want := todo.Todo{Id: id, Title: "Delete_this", Completed: false}
 		var got todo.Todo
 		json.NewDecoder(res.Body).Decode(&got)
 		assert.Equal(t, want, got)
