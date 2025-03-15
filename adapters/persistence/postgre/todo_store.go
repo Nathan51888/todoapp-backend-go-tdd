@@ -23,7 +23,7 @@ func NewPostgreTodoStore(connString string) (*PostgreTodoStore, error) {
 }
 
 func (p *PostgreTodoStore) GetTodoAll() ([]todo.Todo, error) {
-	rows, err := p.db.Query(context.Background(), "SELECT id, title, completed FROM todos")
+	rows, err := p.db.Query(context.Background(), "SELECT id, title, completed FROM todo")
 	if err != nil {
 		log.Printf("Query failed: %v", err)
 		return nil, err
@@ -47,7 +47,7 @@ func (p *PostgreTodoStore) GetTodoAll() ([]todo.Todo, error) {
 
 func (p *PostgreTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {
 	var result todo.Todo
-	err := p.db.QueryRow(context.Background(), "SELECT * FROM todos WHERE title = $1", title).Scan(&result.Id, &result.Title, &result.Completed)
+	err := p.db.QueryRow(context.Background(), "SELECT * FROM todo WHERE title = $1", title).Scan(&result.Id, &result.Title, &result.Completed)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			log.Println("GetTodoByTitle(): No rows")
@@ -60,7 +60,7 @@ func (p *PostgreTodoStore) GetTodoByTitle(title string) (todo.Todo, error) {
 
 func (p *PostgreTodoStore) GetTodoById(todoId int) (todo.Todo, error) {
 	var result todo.Todo
-	err := p.db.QueryRow(context.Background(), "SELECT * FROM todos WHERE id = $1", todoId).Scan(&result.Id, &result.Title, &result.Completed)
+	err := p.db.QueryRow(context.Background(), "SELECT * FROM todo WHERE id = $1", todoId).Scan(&result.Id, &result.Title, &result.Completed)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			log.Println("GetTodoById(): No rows")
@@ -73,7 +73,7 @@ func (p *PostgreTodoStore) GetTodoById(todoId int) (todo.Todo, error) {
 
 func (p *PostgreTodoStore) CreateTodo(title string) (todo.Todo, error) {
 	var result todo.Todo
-	err := p.db.QueryRow(context.Background(), "INSERT INTO todos (id, title, completed) VALUES (DEFAULT, $1, 'false') RETURNING id", title).Scan(&result.Id)
+	err := p.db.QueryRow(context.Background(), "INSERT INTO todo (id, title, completed) VALUES (DEFAULT, $1, 'false') RETURNING id", title).Scan(&result.Id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			log.Println("CreateTodo(): No rows")
@@ -85,7 +85,7 @@ func (p *PostgreTodoStore) CreateTodo(title string) (todo.Todo, error) {
 }
 
 func (p *PostgreTodoStore) UpdateTodoTitle(todoId int, title string) (todo.Todo, error) {
-	_, err := p.db.Exec(context.Background(), "UPDATE todos SET title = $1 WHERE id = $2", title, todoId)
+	_, err := p.db.Exec(context.Background(), "UPDATE todo SET title = $1 WHERE id = $2", title, todoId)
 	if err != nil {
 		log.Printf("UpdateTodoTitle(): Exec failed: %v", err)
 		return todo.Todo{}, err
@@ -94,13 +94,13 @@ func (p *PostgreTodoStore) UpdateTodoTitle(todoId int, title string) (todo.Todo,
 }
 
 func (p *PostgreTodoStore) UpdateTodoStatus(todoId int, completed bool) (todo.Todo, error) {
-	_, err := p.db.Exec(context.Background(), "UPDATE todos SET completed = $1 WHERE id = $2", completed, todoId)
+	_, err := p.db.Exec(context.Background(), "UPDATE todo SET completed = $1 WHERE id = $2", completed, todoId)
 	if err != nil {
 		log.Printf("UpdateTodoStatus(): Exec failed: %v", err)
 		return todo.Todo{}, err
 	}
 	var result todo.Todo
-	err = p.db.QueryRow(context.Background(), "SELECT * FROM todos WHERE id = $1", todoId).Scan(&result.Id, &result.Title, &result.Completed)
+	err = p.db.QueryRow(context.Background(), "SELECT * FROM todo WHERE id = $1", todoId).Scan(&result.Id, &result.Title, &result.Completed)
 	if err != nil {
 		log.Printf("UpdateTodoStatus(): QueryRow failed: %v", err)
 		return todo.Todo{}, err
@@ -109,7 +109,7 @@ func (p *PostgreTodoStore) UpdateTodoStatus(todoId int, completed bool) (todo.To
 }
 
 func (p *PostgreTodoStore) UpdateTodoById(todoId int, todoToChange todo.Todo) (todo.Todo, error) {
-	_, err := p.db.Exec(context.Background(), "UPDATE todos SET title = $1, completed = $2 WHERE id = $3", todoToChange.Title, todoToChange.Completed, todoId)
+	_, err := p.db.Exec(context.Background(), "UPDATE todo SET title = $1, completed = $2 WHERE id = $3", todoToChange.Title, todoToChange.Completed, todoId)
 	if err != nil {
 		log.Printf("UpdateTodoById(): QueryRow failed: %v", err)
 		return todo.Todo{}, err
@@ -119,7 +119,7 @@ func (p *PostgreTodoStore) UpdateTodoById(todoId int, todoToChange todo.Todo) (t
 
 func (p *PostgreTodoStore) DeleteTodoById(todoId int) (todo.Todo, error) {
 	var result todo.Todo
-	err := p.db.QueryRow(context.Background(), "DELETE FROM todos WHERE id = $1 RETURNING id, title, completed", todoId).Scan(&result.Id, &result.Title, &result.Completed)
+	err := p.db.QueryRow(context.Background(), "DELETE FROM todo WHERE id = $1 RETURNING id, title, completed", todoId).Scan(&result.Id, &result.Title, &result.Completed)
 	if err != nil {
 		log.Printf("DeleteTodoById(): QueryRow failed: %v", err)
 		return todo.Todo{}, err
