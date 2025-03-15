@@ -1,4 +1,4 @@
-package httpserver_test
+package handler_test
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTodoServer(t *testing.T) {
+func TestGET(t *testing.T) {
 	t.Run("GET /todo: can get todo by title", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
 			{Title: "Todo1", Completed: false},
@@ -46,6 +46,26 @@ func TestTodoServer(t *testing.T) {
 		want := todo.Todo{Id: 3, Title: "Todo1", Completed: false}
 		assert.Equal(t, want, got)
 	})
+	t.Run("GET /todo: can get all todos as slice", func(t *testing.T) {
+		want := []todo.Todo{
+			{Title: "Todo1", Completed: false},
+			{Title: "Todo2", Completed: true},
+			{Title: "Todo3", Completed: false},
+		}
+		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: want})
+
+		req := httptest.NewRequest(http.MethodGet, "/todo", nil)
+		res := httptest.NewRecorder()
+
+		server.ServeHTTP(res, req)
+
+		var got []todo.Todo
+		json.NewDecoder(res.Body).Decode(&got)
+		assert.Equal(t, want, got)
+	})
+}
+
+func TestPOST(t *testing.T) {
 	t.Run("POST /todo: can create and get todo by title", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{})
 
@@ -87,6 +107,9 @@ func TestTodoServer(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, res.Result().StatusCode)
 	})
+}
+
+func TestPUT(t *testing.T) {
 	t.Run("PUT /todo: can update todo title by todo id", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
 			{Id: 5, Title: "Todo_new", Completed: false},
@@ -123,23 +146,9 @@ func TestTodoServer(t *testing.T) {
 		json.NewDecoder(res.Body).Decode(&got)
 		assert.Equal(t, want, got)
 	})
-	t.Run("GET /todo: can get all todos as slice", func(t *testing.T) {
-		want := []todo.Todo{
-			{Title: "Todo1", Completed: false},
-			{Title: "Todo2", Completed: true},
-			{Title: "Todo3", Completed: false},
-		}
-		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: want})
+}
 
-		req := httptest.NewRequest(http.MethodGet, "/todo", nil)
-		res := httptest.NewRecorder()
-
-		server.ServeHTTP(res, req)
-
-		var got []todo.Todo
-		json.NewDecoder(res.Body).Decode(&got)
-		assert.Equal(t, want, got)
-	})
+func TestDELETE(t *testing.T) {
 	t.Run("DELETE /todo: can delete todo by id", func(t *testing.T) {
 		server := httpserver.NewTodoServer(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
 			{Id: 8, Title: "Delete_this", Completed: false},
