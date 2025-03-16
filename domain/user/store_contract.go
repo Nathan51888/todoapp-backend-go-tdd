@@ -34,7 +34,7 @@ func (c UserStoreContract) Test(t *testing.T) {
 			t.Fatalf("Error creating UserStore: %v", err)
 		}
 
-		email := "email@email.com"
+		email := "user@email.com"
 		password := "password"
 		registeredUser, err := sut.RegisterUser(email, password)
 		assert.NoError(t, err, "RegisterUser()")

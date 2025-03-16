@@ -6,7 +6,7 @@
 
 CREATE TABLE public.users (
     user_id uuid DEFAULT gen_random_uuid() NOT NULL,
-    email varchar NOT NULL,
+    user_email varchar NOT NULL,
     user_password varchar NOT NULL,
     CONSTRAINT user_pk PRIMARY KEY (user_id)
 );
