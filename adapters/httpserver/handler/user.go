@@ -53,8 +53,16 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	secret := []byte("secret")
+	token, err := auth.CreateJWT(secret, user.Id.String())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Print(err)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"secret": ""})
+	json.NewEncoder(w).Encode(map[string]string{"secret": token})
 }
 
 func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
