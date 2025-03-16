@@ -7,6 +7,8 @@ import (
 	"mytodoapp/adapters/auth"
 	"mytodoapp/domain/user"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type RegisterUserPayload struct {
@@ -27,6 +29,7 @@ func NewUserHandler(mux *http.ServeMux, store user.UserStore) {
 	handler := &UserHandler{store}
 	mux.HandleFunc("POST /login", handler.LoginUser)
 	mux.HandleFunc("POST /register", handler.RegisterUser)
+	mux.HandleFunc("GET /profile", auth.WithJWTAuth(handler.GetUser, store))
 }
 
 func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -99,4 +102,23 @@ func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	userId, err := uuid.Parse(id)
+	if err != nil {
+		log.Print("error parsing uuid")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user, err := u.store.GetUserById(userId)
+	if err != nil {
+		log.Printf("error GetUserById: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(&user)
 }

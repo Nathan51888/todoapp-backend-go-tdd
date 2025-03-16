@@ -35,7 +35,7 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.Handle
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		str := claims["userID"].(string)
+		str := claims["userId"].(string)
 		userId, err := uuid.Parse(str)
 		if err != nil {
 			log.Print("uuid failed to parse userId from token")
