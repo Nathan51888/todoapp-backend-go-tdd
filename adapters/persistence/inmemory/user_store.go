@@ -1,14 +1,14 @@
 package inmemory
 
-import "mytodoapp/domain/user"
+import (
+	"errors"
+	"mytodoapp/domain/user"
 
-type User struct {
-	email    string
-	password string
-}
+	"github.com/google/uuid"
+)
 
 type InMemoryUserStore struct {
-	Users []User
+	Users []user.User
 }
 
 func NewInMemoryUserStore() (*InMemoryUserStore, error) {
@@ -17,7 +17,35 @@ func NewInMemoryUserStore() (*InMemoryUserStore, error) {
 
 var test user.UserStore = &InMemoryUserStore{}
 
-func (i *InMemoryUserStore) RegisterUser(email string, password string) error {
-	i.Users = append(i.Users, User{email, password})
-	return nil
+func (i *InMemoryUserStore) RegisterUser(email string, password string) (user.User, error) {
+	// check if user email exists
+	for _, item := range i.Users {
+		if item.Email == email {
+			return user.User{}, errors.New("user email already exists")
+		}
+	}
+
+	newUser := user.User{Id: uuid.New(), Email: email, Password: password}
+	i.Users = append(i.Users, newUser)
+	return newUser, nil
+}
+
+func (i *InMemoryUserStore) GetUserByEmail(email string) (user.User, error) {
+	for index, item := range i.Users {
+		if item.Email == email {
+			result := i.Users[index]
+			return result, nil
+		}
+	}
+	return user.User{}, errors.New("user email not found")
+}
+
+func (i *InMemoryUserStore) GetUserById(id uuid.UUID) (user.User, error) {
+	for index, item := range i.Users {
+		if item.Id == id {
+			result := i.Users[index]
+			return result, nil
+		}
+	}
+	return user.User{}, errors.New("user id not found")
 }
