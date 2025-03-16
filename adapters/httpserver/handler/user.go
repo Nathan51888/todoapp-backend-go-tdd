@@ -53,6 +53,7 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: use env for jwt secret
 	secret := []byte("secret")
 	token, err := auth.CreateJWT(secret, user.Id.String())
 	if err != nil {
