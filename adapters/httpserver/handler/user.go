@@ -35,6 +35,7 @@ func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = u.store.RegisterUser(payload.Email, payload.Password)
+	_, err = u.store.CreateUser(user.Email, hashedPassword)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

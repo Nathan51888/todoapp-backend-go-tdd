@@ -24,7 +24,7 @@ func NewPostgreUserStore(connString string) (*PostgreUserStore, error) {
 	return &PostgreUserStore{db: conn}, nil
 }
 
-func (p *PostgreUserStore) RegisterUser(email string, password string) (user.User, error) {
+func (p *PostgreUserStore) CreateUser(email string, password string) (user.User, error) {
 	// check if email exists
 	var result string
 	err := p.db.QueryRow(

@@ -19,7 +19,7 @@ func (c UserStoreContract) Test(t *testing.T) {
 
 		email := "email@email.com"
 		password := "password"
-		registeredUser, err := sut.RegisterUser(email, password)
+		registeredUser, err := sut.CreateUser(email, password)
 		assert.NoError(t, err, "RegisterUser()")
 		assert.Equal(t, email, registeredUser.Email)
 		assert.Equal(t, password, registeredUser.Password)
@@ -36,7 +36,7 @@ func (c UserStoreContract) Test(t *testing.T) {
 
 		email := "user@email.com"
 		password := "password"
-		registeredUser, err := sut.RegisterUser(email, password)
+		registeredUser, err := sut.CreateUser(email, password)
 		assert.NoError(t, err, "RegisterUser()")
 		assert.Equal(t, email, registeredUser.Email)
 		assert.Equal(t, password, registeredUser.Password)
@@ -53,9 +53,9 @@ func (c UserStoreContract) Test(t *testing.T) {
 
 		email := "existing@email.com"
 		password := "password"
-		_, err = sut.RegisterUser(email, password)
+		_, err = sut.CreateUser(email, password)
 		assert.NoError(t, err, "RegisterUser()")
-		_, err = sut.RegisterUser(email, password)
+		_, err = sut.CreateUser(email, password)
 		assert.Error(t, err, "RegisterUser()")
 	})
 }

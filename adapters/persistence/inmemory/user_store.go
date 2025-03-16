@@ -17,7 +17,7 @@ func NewInMemoryUserStore() (*InMemoryUserStore, error) {
 
 var test user.UserStore = &InMemoryUserStore{}
 
-func (i *InMemoryUserStore) RegisterUser(email string, password string) (user.User, error) {
+func (i *InMemoryUserStore) CreateUser(email string, password string) (user.User, error) {
 	// check if user email exists
 	for _, item := range i.Users {
 		if item.Email == email {
