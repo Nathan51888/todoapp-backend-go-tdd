@@ -70,18 +70,29 @@ func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	log.Print("payload: ", payload)
 	if err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// check if user exists
+	_, err = u.store.GetUserByEmail(payload.Email)
+	if err == nil {
+		log.Printf("user with email %s already exists", payload.Email)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	_, err = u.store.CreateUser(payload.Email, hashedPassword)
 	if err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
