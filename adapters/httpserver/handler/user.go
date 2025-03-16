@@ -7,28 +7,38 @@ import (
 	"net/http"
 )
 
+type RegisterUserPayload struct {
+	Email    string
+	Password string
+}
+
 type UserHandler struct {
 	store user.UserStore
 }
 
 func NewUserHandler(mux *http.ServeMux, store user.UserStore) {
-	handler := &UserHandler{}
+	handler := &UserHandler{store}
 	mux.HandleFunc("/login", handler.LoginUser)
-	mux.HandleFunc("/register", handler.RegisterUser)
+	mux.HandleFunc("POST /register", handler.RegisterUser)
 }
 
 func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	// get json
-	var result any
-	json.NewDecoder(r.Body).Decode(&result)
-	log.Print(result)
+	var payload RegisterUserPayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	log.Print(payload)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	w.WriteHeader(http.StatusAccepted)
+	_, err = u.store.RegisterUser(payload.Email, payload.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	// check if user exists
-
-	// if not then create user
+	w.WriteHeader(http.StatusCreated)
 }

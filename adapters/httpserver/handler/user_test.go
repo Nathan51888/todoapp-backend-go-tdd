@@ -19,12 +19,25 @@ func TestUserHandler(t *testing.T) {
 		handler.NewUserHandler(mux, store)
 
 		payloadBuff := new(bytes.Buffer)
-		json.NewEncoder(payloadBuff).Encode(`[{"email": "test@email.com", "password": "test"}]`)
+		user := handler.RegisterUserPayload{"test@email.com", "password"}
+		json.NewEncoder(payloadBuff).Encode(&user)
 		req := httptest.NewRequest(http.MethodPost, "/register", payloadBuff)
 		res := httptest.NewRecorder()
 
 		mux.ServeHTTP(res, req)
 
-		assert.Equal(t, http.StatusAccepted, res.Code, "status code")
+		assert.Equal(t, http.StatusCreated, res.Code, "status code")
+	})
+	t.Run("returns bad request if body is nil", func(t *testing.T) {
+		mux := http.NewServeMux()
+		store := &inmemory.InMemoryUserStore{}
+		handler.NewUserHandler(mux, store)
+
+		req := httptest.NewRequest(http.MethodPost, "/register", nil)
+		res := httptest.NewRecorder()
+
+		mux.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code)
 	})
 }
