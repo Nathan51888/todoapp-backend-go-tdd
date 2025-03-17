@@ -19,6 +19,13 @@ type LoginUserPayload struct {
 	Password string `json:"password"`
 }
 
+type UserProfilePayload struct {
+	Email     string `json:"email"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Birthday  string `json:"birthday"`
+}
+
 type UserHandler struct {
 	store user.UserStore
 }
@@ -116,5 +123,11 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(&user)
+	var userProfilePayload UserProfilePayload
+	userProfilePayload.Email = user.Email
+	userProfilePayload.FirstName = "first"
+	userProfilePayload.LastName = "last"
+	userProfilePayload.Birthday = "birthday"
+
+	json.NewEncoder(w).Encode(&userProfilePayload)
 }
