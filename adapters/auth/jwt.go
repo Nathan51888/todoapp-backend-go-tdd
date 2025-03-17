@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"mytodoapp/domain/user"
@@ -95,13 +96,14 @@ func permissionDenied(w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(map[string]string{"error": "permission denied"})
 }
 
-func GetUserIdFromContext(ctx context.Context) string {
-	userId, ok := ctx.Value(UserKey).(string)
+func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
+	userId, ok := ctx.Value(UserKey).(uuid.UUID)
 	if !ok {
-		return ""
+		log.Print("Couldn't get userId from context")
+		return uuid.UUID{}, errors.New("couldn't get userId from context")
 	}
 
-	return userId
+	return userId, nil
 }
 
 func GetTokenFromRequest(r *http.Request) string {
@@ -109,10 +111,12 @@ func GetTokenFromRequest(r *http.Request) string {
 	tokenQuery := r.URL.Query().Get("token")
 
 	if tokenAuth != "" {
+		log.Printf("Header recieved: %v", tokenAuth)
 		return tokenAuth
 	}
 
 	if tokenQuery != "" {
+		log.Printf("Query recieved: %v", tokenAuth)
 		return tokenQuery
 	}
 

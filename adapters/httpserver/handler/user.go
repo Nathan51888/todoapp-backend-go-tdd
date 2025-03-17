@@ -7,8 +7,6 @@ import (
 	"mytodoapp/adapters/auth"
 	"mytodoapp/domain/user"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 type RegisterUserPayload struct {
@@ -104,10 +102,9 @@ func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-	userId, err := uuid.Parse(id)
+	userId, err := auth.GetUserIdFromContext(r.Context())
 	if err != nil {
-		log.Print("error parsing uuid")
+		log.Printf("GetUser(): GetUserIdFromContext(): %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
