@@ -33,10 +33,14 @@ func TestTodoServer(t *testing.T) {
 	var (
 		backendPort = "8080"
 		baseURL     = fmt.Sprintf("http://localhost:%s", backendPort)
-		driver      = httpserver.Driver{BaseURL: baseURL, Client: &http.Client{
+		todoDriver  = httpserver.TodoDriver{BaseURL: baseURL, Client: &http.Client{
+			Timeout: 1 * time.Second,
+		}}
+		userDriver = httpserver.UserDriver{BaseURL: baseURL, Client: &http.Client{
 			Timeout: 1 * time.Second,
 		}}
 	)
 
-	specifications.TodoSpecification(t, driver)
+	specifications.TodoSpecification(t, &todoDriver)
+	specifications.UserSpecification(t, &userDriver)
 }

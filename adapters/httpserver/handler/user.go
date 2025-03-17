@@ -42,6 +42,7 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	log.Print("Login payload: ", payload)
 	if err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

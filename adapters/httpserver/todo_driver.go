@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type Driver struct {
+type TodoDriver struct {
 	BaseURL string
 	Client  *http.Client
 }
 
-func (d Driver) GetTodoById(id uuid.UUID) (todo.Todo, error) {
+func (d TodoDriver) GetTodoById(id uuid.UUID) (todo.Todo, error) {
 	res, err := d.Client.Get(d.BaseURL + "/todo?id=" + id.String())
 	if err != nil {
 		return todo.Todo{}, err
@@ -28,7 +28,7 @@ func (d Driver) GetTodoById(id uuid.UUID) (todo.Todo, error) {
 	return result, nil
 }
 
-func (d Driver) CreateTodo(title string) (todo.Todo, error) {
+func (d TodoDriver) CreateTodo(title string) (todo.Todo, error) {
 	res, err := d.Client.Post(d.BaseURL+"/todo?title="+title, "", nil)
 	if err != nil {
 		return todo.Todo{}, err
