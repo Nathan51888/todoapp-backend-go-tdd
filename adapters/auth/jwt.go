@@ -23,6 +23,7 @@ const JWTSecret = "secret"
 // TODO: make it an env
 const JWTExpirationTime = time.Second * time.Duration(3600*24*3)
 
+// TODO: make it a middleware
 func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := GetTokenFromRequest(r)

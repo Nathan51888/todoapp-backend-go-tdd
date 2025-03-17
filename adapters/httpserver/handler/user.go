@@ -35,7 +35,7 @@ func NewUserHandler(mux *http.ServeMux, store user.UserStore) {
 func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var payload LoginUserPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
-	log.Print("payload: ", payload)
+	log.Print("Login payload: ", payload)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -71,7 +71,7 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
-	log.Print("payload: ", payload)
+	log.Print("Register payload: ", payload)
 	if err != nil {
 		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
