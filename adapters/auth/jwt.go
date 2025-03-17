@@ -17,6 +17,12 @@ type contextKey string
 
 const UserKey contextKey = "userId"
 
+// TODO: make it an env
+const JWTSecret = "secret"
+
+// TODO: make it an env
+const JWTExpirationTime = time.Second * time.Duration(3600*24*3)
+
 func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := GetTokenFromRequest(r)
@@ -61,12 +67,9 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.Handle
 }
 
 func CreateJWT(secret []byte, userId string) (string, error) {
-	// TODO: make expiration an env
-	expiration := time.Second * time.Duration(3600*24*3)
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId":    userId,
-		"expiredAt": time.Now().Add(expiration).Unix(),
+		"expiredAt": time.Now().Add(JWTExpirationTime).Unix(),
 	})
 
 	tokenString, err := token.SignedString(secret)

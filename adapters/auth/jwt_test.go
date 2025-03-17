@@ -6,7 +6,7 @@ import (
 )
 
 func TestCreateJWT(t *testing.T) {
-	secret := []byte("secret")
+	secret := []byte(auth.JWTSecret)
 
 	token, err := auth.CreateJWT(secret, "456")
 	if err != nil {

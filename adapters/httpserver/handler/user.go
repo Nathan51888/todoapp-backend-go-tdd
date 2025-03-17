@@ -56,8 +56,7 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: use env for jwt secret
-	secret := []byte("secret")
+	secret := []byte(auth.JWTSecret)
 	token, err := auth.CreateJWT(secret, user.Id.String())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -66,7 +65,7 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"secret": token})
+	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
 
 func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
