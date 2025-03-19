@@ -12,11 +12,11 @@ type TodoServer struct {
 	http.Handler
 }
 
-func NewTodoServer(store todo.TodoStore) *TodoServer {
+func NewTodoServer(todoStore todo.TodoStore) *TodoServer {
 	server := new(TodoServer)
 
 	mux := http.NewServeMux()
-	handler.NewTodoHandler(mux, store)
+	handler.NewTodoHandler(mux, todoStore, &inmemory.InMemoryUserStore{})
 	handler.NewUserHandler(mux, &inmemory.InMemoryUserStore{})
 	stack := middleware.CreateStack(
 		middleware.AllowCors,
