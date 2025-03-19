@@ -3,8 +3,8 @@ package httpserver
 import (
 	"mytodoapp/adapters/httpserver/handler"
 	"mytodoapp/adapters/httpserver/middleware"
-	"mytodoapp/adapters/persistence/inmemory"
 	"mytodoapp/domain/todo"
+	"mytodoapp/domain/user"
 	"net/http"
 )
 
@@ -12,12 +12,12 @@ type TodoServer struct {
 	http.Handler
 }
 
-func NewTodoServer(todoStore todo.TodoStore) *TodoServer {
+func NewTodoServer(todoStore todo.TodoStore, userStore user.UserStore) *TodoServer {
 	server := new(TodoServer)
 
 	mux := http.NewServeMux()
-	handler.NewTodoHandler(mux, todoStore, &inmemory.InMemoryUserStore{})
-	handler.NewUserHandler(mux, &inmemory.InMemoryUserStore{})
+	handler.NewTodoHandler(mux, todoStore, userStore)
+	handler.NewUserHandler(mux, userStore)
 	stack := middleware.CreateStack(
 		middleware.AllowCors,
 	)

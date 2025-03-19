@@ -19,10 +19,14 @@ func main() {
 	dbConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", dbHost, dbPort, dbDatabase, dbUser, dbPassword)
 	log.Printf("db conn string: %s", dbConnString)
 
-	store, err := postgre.NewPostgreTodoStore(dbConnString)
+	todoStore, err := postgre.NewPostgreTodoStore(dbConnString)
 	if err != nil {
 		log.Fatalf("Error creating postgre todo store: %v", err)
 	}
-	server := httpserver.NewTodoServer(store)
+	userStore, err := postgre.NewPostgreUserStore(dbConnString)
+	if err != nil {
+		log.Fatalf("Error create postgre user store: %v", err)
+	}
+	server := httpserver.NewTodoServer(todoStore, userStore)
 	log.Fatal(http.ListenAndServe(":8080", server))
 }

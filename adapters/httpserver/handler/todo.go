@@ -88,6 +88,7 @@ func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Error CreateTodo(): %v", err)
 		}
 
+		w.WriteHeader(http.StatusCreated)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(&result)
 	}
@@ -102,6 +103,8 @@ func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error CreateTodo(): %v", err)
 		}
+
+		w.WriteHeader(http.StatusCreated)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(&result)
 		return
