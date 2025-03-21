@@ -96,6 +96,7 @@ func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		log.Printf("user with email %s already exists", payload.Email)
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "user email already exists")
 		return
 	}
 
