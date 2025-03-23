@@ -27,7 +27,12 @@ const JWTExpirationTime = time.Second * time.Duration(3600*24*3)
 // TODO: make it a middleware
 func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := GetTokenFromRequest(r)
+		tokenString, err := GetTokenFromRequest(r)
+		if err != nil {
+			log.Printf("GetTokenFromRequest(): %v", err)
+			missingToken(w)
+			return
+		}
 
 		token, err := validateJWT(tokenString)
 		if err != nil {
@@ -35,7 +40,6 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.Handle
 			permissionDenied(w)
 			return
 		}
-
 		if !token.Valid {
 			log.Println("invalid token")
 			permissionDenied(w)
@@ -96,6 +100,11 @@ func permissionDenied(w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(map[string]string{"error": "permission denied"})
 }
 
+func missingToken(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusUnauthorized)
+	json.NewEncoder(w).Encode(map[string]string{"error": "missing token"})
+}
+
 func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
 	userId, ok := ctx.Value(UserKey).(uuid.UUID)
 	if !ok {
@@ -106,15 +115,15 @@ func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
 	return userId, nil
 }
 
-func GetTokenFromRequest(r *http.Request) string {
+func GetTokenFromRequest(r *http.Request) (string, error) {
 	tokenAuth := r.Header.Get("Authorization")
 	log.Printf("Cookies recieved: %v", r.Cookies())
 
-	if tokenAuth != "" {
-		log.Printf("Header recieved: %v", tokenAuth)
-		return tokenAuth
+	if tokenAuth == "" {
+		log.Print("No header was recieved")
+		return "", fmt.Errorf("no token in header")
 	}
 
-	log.Print("No header was recieved")
-	return ""
+	log.Printf("Header recieved: %v", tokenAuth)
+	return tokenAuth, nil
 }
