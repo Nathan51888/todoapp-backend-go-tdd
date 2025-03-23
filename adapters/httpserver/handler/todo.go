@@ -78,37 +78,47 @@ func (t *TodoHandler) GetTodoAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Query().Get("title")
-
 	var body todo.Todo
-	json.NewDecoder(r.Body).Decode(&body)
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		log.Printf("CreateTodo() error decoding body json: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	log.Printf("recieved todo title: %s", body.Title)
 	if body.Title != "" {
 		result, err := t.todoStore.CreateTodo(body.Title)
 		if err != nil {
 			log.Printf("Error CreateTodo(): %v", err)
 		}
 
+		log.Printf("Todo created from json: %v", result.Title)
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(&result)
-	}
-
-	if title == "" {
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	title := r.URL.Query().Get("title")
 	if title != "" {
 		result, err := t.todoStore.CreateTodo(title)
 		if err != nil {
 			log.Printf("Error CreateTodo(): %v", err)
 		}
 
+		log.Printf("Todo created from query: %v", result.Title)
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(&result)
 		return
 	}
+	if title == "" {
+		log.Print("no title query string")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	log.Print("stange nothing happened")
 }
 
 func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {

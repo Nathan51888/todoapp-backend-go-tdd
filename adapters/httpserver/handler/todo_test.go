@@ -148,7 +148,7 @@ func TestPOST(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, res.Code)
 	})
-	t.Run("POST /todo: can create and get todo by title", func(t *testing.T) {
+	t.Run("POST /todo: can create todo with json", func(t *testing.T) {
 		body := todo.Todo{Title: "Todo_new", Completed: false}
 		payloadBuf := new(bytes.Buffer)
 		json.NewEncoder(payloadBuf).Encode(body)
@@ -165,7 +165,7 @@ func TestPOST(t *testing.T) {
 		assert.Equal(t, want.Completed, got.Completed)
 		assert.Equal(t, http.StatusCreated, res.Code)
 	})
-	t.Run("POST /todo?title: can create todo with query options", func(t *testing.T) {
+	t.Run("POST /todo?title: can create todo with query strings", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/todo?title=Todo_new", nil)
 		req.Header.Add("Authorization", token)
 		res := httptest.NewRecorder()
