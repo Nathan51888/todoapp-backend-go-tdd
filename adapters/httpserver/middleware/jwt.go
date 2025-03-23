@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"mytodoapp/adapters/auth"
 	"mytodoapp/domain/user"
@@ -23,15 +22,15 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.Handle
 			return
 		}
 
-		token, err := validateJWT(tokenString)
+		token, err := auth.ValidateAccessToken(tokenString)
 		if err != nil {
-			log.Printf("failed to validate token: %v", err)
-			permissionDenied(w)
+			log.Printf("failed to validate token ValidateAccessToken(): %v", err)
+			auth.PermissionDenied(w)
 			return
 		}
 		if !token.Valid {
 			log.Println("invalid token")
-			permissionDenied(w)
+			auth.PermissionDenied(w)
 			return
 		}
 
@@ -40,14 +39,14 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.Handle
 		userId, err := uuid.Parse(str)
 		if err != nil {
 			log.Print("uuid failed to parse userId from token")
-			permissionDenied(w)
+			auth.PermissionDenied(w)
 			return
 		}
 
 		u, err := store.GetUserById(userId)
 		if err != nil {
 			log.Printf("failed to get user by id: %v", err)
-			permissionDenied(w)
+			auth.PermissionDenied(w)
 			return
 		}
 
@@ -59,19 +58,4 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.Handle
 		// Call the function if the token is valid
 		handlerFunc(w, r)
 	}
-}
-
-func validateJWT(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return []byte("secret"), nil
-	})
-}
-
-func permissionDenied(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusUnauthorized)
-	json.NewEncoder(w).Encode(map[string]string{"error": "permission denied"})
 }

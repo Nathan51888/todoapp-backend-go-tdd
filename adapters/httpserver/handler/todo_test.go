@@ -26,7 +26,7 @@ func TestGetTodo(t *testing.T) {
 		{Id: userId},
 	}}
 	handler := createTodoHandler(todoStore, userStore)
-	token, err := auth.CreateJWT([]byte(auth.JWTSecret), userId.String())
+	token, err := auth.CreateAccessToken(userId.String())
 	if err != nil {
 		t.Fatalf("CreateJWT(): %v", err)
 	}
@@ -87,7 +87,7 @@ func TestGetAllTodos(t *testing.T) {
 		{Id: userId},
 	}}
 	handler := createTodoHandler(todoStore, userStore)
-	token, err := auth.CreateJWT([]byte(auth.JWTSecret), userId.String())
+	token, err := auth.CreateAccessToken(userId.String())
 	if err != nil {
 		t.Fatalf("CreateJWT(): %v", err)
 	}
@@ -135,7 +135,7 @@ func TestPOST(t *testing.T) {
 		{Id: userId},
 	}}
 	handler := createTodoHandler(todoStore, userStore)
-	token, err := auth.CreateJWT([]byte(auth.JWTSecret), userId.String())
+	token, err := auth.CreateAccessToken(userId.String())
 	if err != nil {
 		t.Fatalf("CreateJWT(): %v", err)
 	}
@@ -200,7 +200,7 @@ func TestPUT(t *testing.T) {
 		{Id: userId},
 	}}
 	handler := createTodoHandler(todoStore, userStore)
-	token, err := auth.CreateJWT([]byte(auth.JWTSecret), userId.String())
+	token, err := auth.CreateAccessToken(userId.String())
 	if err != nil {
 		t.Fatalf("CreateJWT(): %v", err)
 	}
@@ -274,7 +274,7 @@ func TestDELETE(t *testing.T) {
 		{Id: userId},
 	}}
 	handler := createTodoHandler(todoStore, userStore)
-	token, err := auth.CreateJWT([]byte(auth.JWTSecret), userId.String())
+	token, err := auth.CreateAccessToken(userId.String())
 	if err != nil {
 		t.Fatalf("CreateJWT(): %v", err)
 	}

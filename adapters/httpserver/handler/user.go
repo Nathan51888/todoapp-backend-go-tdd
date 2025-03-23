@@ -63,8 +63,7 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	secret := []byte(auth.JWTSecret)
-	token, err := auth.CreateJWT(secret, user.Id.String())
+	token, err := auth.CreateAccessToken(user.Id.String())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Print(err)
