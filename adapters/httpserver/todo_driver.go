@@ -11,10 +11,16 @@ import (
 type TodoDriver struct {
 	BaseURL string
 	Client  *http.Client
+	Token   string
 }
 
 func (d TodoDriver) GetTodoById(id uuid.UUID) (todo.Todo, error) {
-	res, err := d.Client.Get(d.BaseURL + "/todo?id=" + id.String())
+	req, err := http.NewRequest(http.MethodGet, d.BaseURL+"/todo?id="+id.String(), nil)
+	if err != nil {
+		return todo.Todo{}, err
+	}
+	req.Header.Add("Authorization", d.Token)
+	res, err := d.Client.Do(req)
 	if err != nil {
 		return todo.Todo{}, err
 	}
@@ -29,7 +35,12 @@ func (d TodoDriver) GetTodoById(id uuid.UUID) (todo.Todo, error) {
 }
 
 func (d TodoDriver) CreateTodo(title string) (todo.Todo, error) {
-	res, err := d.Client.Post(d.BaseURL+"/todo?title="+title, "", nil)
+	req, err := http.NewRequest(http.MethodPost, d.BaseURL+"/todo?title="+title, nil)
+	if err != nil {
+		return todo.Todo{}, err
+	}
+	req.Header.Add("Authorization", d.Token)
+	res, err := d.Client.Do(req)
 	if err != nil {
 		return todo.Todo{}, err
 	}

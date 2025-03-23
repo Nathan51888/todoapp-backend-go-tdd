@@ -10,7 +10,7 @@ import (
 type UserDriver struct {
 	BaseURL string
 	Client  *http.Client
-	token   string
+	Token   string
 }
 
 func (d *UserDriver) RegisterUser(email string, password string) error {
@@ -43,7 +43,7 @@ func (d *UserDriver) LoginUser(email string, password string) (token string, err
 	var result LoginUserResponse
 	json.NewDecoder(res.Body).Decode(&result)
 	// set cookie on client
-	d.token = result.Token
+	d.Token = result.Token
 
 	return result.Token, nil
 }
@@ -53,7 +53,7 @@ func (d *UserDriver) GetUserProfile(token string) (handler.UserProfilePayload, e
 	if err != nil {
 		return handler.UserProfilePayload{}, err
 	}
-	req.Header.Add("Authorization", d.token)
+	req.Header.Add("Authorization", d.Token)
 	res, err := d.Client.Do(req)
 	if err != nil {
 		return handler.UserProfilePayload{}, err
