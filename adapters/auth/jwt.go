@@ -2,11 +2,9 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"mytodoapp/domain/user"
 	"net/http"
 	"time"
 
@@ -24,55 +22,6 @@ const JWTSecret = "secret"
 // TODO: make it an env
 const JWTExpirationTime = time.Second * time.Duration(3600*24*3)
 
-// TODO: make it a middleware
-func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString, err := GetTokenFromRequest(r)
-		if err != nil {
-			log.Printf("GetTokenFromRequest(): %v", err)
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "missing token"})
-			return
-		}
-
-		token, err := validateJWT(tokenString)
-		if err != nil {
-			log.Printf("failed to validate token: %v", err)
-			permissionDenied(w)
-			return
-		}
-		if !token.Valid {
-			log.Println("invalid token")
-			permissionDenied(w)
-			return
-		}
-
-		claims := token.Claims.(jwt.MapClaims)
-		str := claims["userId"].(string)
-		userId, err := uuid.Parse(str)
-		if err != nil {
-			log.Print("uuid failed to parse userId from token")
-			permissionDenied(w)
-			return
-		}
-
-		u, err := store.GetUserById(userId)
-		if err != nil {
-			log.Printf("failed to get user by id: %v", err)
-			permissionDenied(w)
-			return
-		}
-
-		// Add the user to the context
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, UserKey, u.Id)
-		r = r.WithContext(ctx)
-
-		// Call the function if the token is valid
-		handlerFunc(w, r)
-	}
-}
-
 func CreateJWT(secret []byte, userId string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId":    userId,
@@ -86,21 +35,6 @@ func CreateJWT(secret []byte, userId string) (string, error) {
 	return tokenString, nil
 }
 
-func validateJWT(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return []byte("secret"), nil
-	})
-}
-
-func permissionDenied(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusUnauthorized)
-	json.NewEncoder(w).Encode(map[string]string{"error": "permission denied"})
-}
-
 func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
 	userId, ok := ctx.Value(UserKey).(uuid.UUID)
 	if !ok {
@@ -111,14 +45,14 @@ func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
 	return userId, nil
 }
 
-func GetTokenFromRequest(r *http.Request) (string, error) {
-	tokenAuth := r.Header.Get("Authorization")
+func GetAccessTokenFromRequest(r *http.Request) (string, error) {
+	accessToken := r.Header.Get("Authorization")
 
-	if tokenAuth == "" {
-		log.Print("No header was recieved")
-		return "", fmt.Errorf("no token in header")
+	if accessToken == "" {
+		log.Print("No accessToken was recieved in header")
+		return "", fmt.Errorf("no access token in header")
 	}
 
-	log.Printf("Header recieved: %v", tokenAuth)
-	return tokenAuth, nil
+	log.Printf("Access token recieved: %v", accessToken)
+	return accessToken, nil
 }

@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"log"
-	"mytodoapp/adapters/auth"
+	"mytodoapp/adapters/httpserver/middleware"
 	"mytodoapp/domain/todo"
 	"mytodoapp/domain/user"
 	"net/http"
@@ -22,10 +22,10 @@ func NewTodoHandler(mux *http.ServeMux, todoStore todo.TodoStore, userStore user
 		todoStore: todoStore,
 		userStore: userStore,
 	}
-	mux.HandleFunc("GET /todo", auth.WithJWTAuth(handler.GetTodo, userStore))
-	mux.HandleFunc("POST /todo", auth.WithJWTAuth(handler.CreateTodo, userStore))
-	mux.HandleFunc("PUT /todo", auth.WithJWTAuth(handler.UpdateTodo, userStore))
-	mux.HandleFunc("DELETE /todo", auth.WithJWTAuth(handler.DeleteTodo, userStore))
+	mux.HandleFunc("GET /todo", middleware.WithJWTAuth(handler.GetTodo, userStore))
+	mux.HandleFunc("POST /todo", middleware.WithJWTAuth(handler.CreateTodo, userStore))
+	mux.HandleFunc("PUT /todo", middleware.WithJWTAuth(handler.UpdateTodo, userStore))
+	mux.HandleFunc("DELETE /todo", middleware.WithJWTAuth(handler.DeleteTodo, userStore))
 }
 
 func (t *TodoHandler) GetTodo(w http.ResponseWriter, r *http.Request) {

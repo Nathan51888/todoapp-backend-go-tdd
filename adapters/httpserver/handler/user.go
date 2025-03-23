@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"mytodoapp/adapters/auth"
+	"mytodoapp/adapters/httpserver/middleware"
 	"mytodoapp/domain/user"
 	"net/http"
 )
@@ -34,7 +35,7 @@ func NewUserHandler(mux *http.ServeMux, store user.UserStore) {
 	handler := &UserHandler{store}
 	mux.HandleFunc("POST /login", handler.LoginUser)
 	mux.HandleFunc("POST /register", handler.RegisterUser)
-	mux.HandleFunc("GET /profile", auth.WithJWTAuth(handler.GetUser, store))
+	mux.HandleFunc("GET /profile", middleware.WithJWTAuth(handler.GetUser, store))
 }
 
 func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
