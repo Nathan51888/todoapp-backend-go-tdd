@@ -30,7 +30,8 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store user.UserStore) http.Handle
 		tokenString, err := GetTokenFromRequest(r)
 		if err != nil {
 			log.Printf("GetTokenFromRequest(): %v", err)
-			missingToken(w)
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "missing token"})
 			return
 		}
 
@@ -96,13 +97,8 @@ func validateJWT(tokenString string) (*jwt.Token, error) {
 }
 
 func permissionDenied(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusForbidden)
-	json.NewEncoder(w).Encode(map[string]string{"error": "permission denied"})
-}
-
-func missingToken(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusUnauthorized)
-	json.NewEncoder(w).Encode(map[string]string{"error": "missing token"})
+	json.NewEncoder(w).Encode(map[string]string{"error": "permission denied"})
 }
 
 func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
@@ -117,7 +113,6 @@ func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
 
 func GetTokenFromRequest(r *http.Request) (string, error) {
 	tokenAuth := r.Header.Get("Authorization")
-	log.Printf("Cookies recieved: %v", r.Cookies())
 
 	if tokenAuth == "" {
 		log.Print("No header was recieved")

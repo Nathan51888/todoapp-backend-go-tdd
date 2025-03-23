@@ -37,7 +37,7 @@ func TestGetTodo(t *testing.T) {
 
 		handler.ServeHTTP(res, req)
 
-		assert.Equal(t, http.StatusForbidden, res.Code)
+		assert.Equal(t, http.StatusUnauthorized, res.Code)
 	})
 	t.Run("GET /todo: can get todo with auth header", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/todo", nil)
@@ -98,7 +98,7 @@ func TestGetAllTodos(t *testing.T) {
 
 		handler.ServeHTTP(res, req)
 
-		assert.Equal(t, http.StatusForbidden, res.Code)
+		assert.Equal(t, http.StatusUnauthorized, res.Code)
 	})
 	t.Run("GET /todo: can get todo with auth header", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/todo", nil)
@@ -146,7 +146,7 @@ func TestPOST(t *testing.T) {
 
 		handler.ServeHTTP(res, req)
 
-		assert.Equal(t, http.StatusForbidden, res.Code)
+		assert.Equal(t, http.StatusUnauthorized, res.Code)
 	})
 	t.Run("POST /todo: can create and get todo by title", func(t *testing.T) {
 		body := todo.Todo{Title: "Todo_new", Completed: false}
@@ -211,7 +211,7 @@ func TestPUT(t *testing.T) {
 
 		handler.ServeHTTP(res, req)
 
-		assert.Equal(t, http.StatusForbidden, res.Code)
+		assert.Equal(t, http.StatusUnauthorized, res.Code)
 	})
 	t.Run("PUT /todo: can update todo with auth header", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPut, "/todo", nil)
@@ -285,7 +285,7 @@ func TestDELETE(t *testing.T) {
 
 		handler.ServeHTTP(res, req)
 
-		assert.Equal(t, http.StatusForbidden, res.Code)
+		assert.Equal(t, http.StatusUnauthorized, res.Code)
 	})
 	t.Run("DELETE /todo: can delete todo by id", func(t *testing.T) {
 		id := uuid.New()
