@@ -78,28 +78,8 @@ func (t *TodoHandler) GetTodoAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
-	var body todo.Todo
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
-		log.Printf("CreateTodo() error decoding body json: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	log.Printf("recieved todo title: %s", body.Title)
-	if body.Title != "" {
-		result, err := t.todoStore.CreateTodo(body.Title)
-		if err != nil {
-			log.Printf("Error CreateTodo(): %v", err)
-		}
-
-		log.Printf("Todo created from json: %v", result.Title)
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Add("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(&result)
-		return
-	}
-
 	title := r.URL.Query().Get("title")
+
 	if title != "" {
 		result, err := t.todoStore.CreateTodo(title)
 		if err != nil {
@@ -112,13 +92,37 @@ func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(&result)
 		return
 	}
-	if title == "" {
-		log.Print("no title query string")
+
+	if r.Body != nil {
+		var body todo.Todo
+		json.NewDecoder(r.Body).Decode(&body)
+		if body.Title == "" {
+			log.Print("CreateTodo() title is empty in body")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		log.Printf("recieved todo title: %s", body.Title)
+		if body.Title != "" {
+			result, err := t.todoStore.CreateTodo(body.Title)
+			if err != nil {
+				log.Printf("Error CreateTodo(): %v", err)
+			}
+
+			log.Printf("Todo created from json: %v", result.Title)
+			w.WriteHeader(http.StatusCreated)
+			w.Header().Add("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(&result)
+			return
+		}
+	}
+
+	if r.Body == nil && title == "" {
+		log.Print("no title provided by query string and body")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	log.Print("stange nothing happened")
+	log.Print("CreateTodo: stange nothing happened")
 }
 
 func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
