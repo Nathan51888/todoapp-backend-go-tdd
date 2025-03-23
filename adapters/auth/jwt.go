@@ -108,17 +108,13 @@ func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
 
 func GetTokenFromRequest(r *http.Request) string {
 	tokenAuth := r.Header.Get("Authorization")
-	tokenQuery := r.URL.Query().Get("token")
+	log.Printf("Cookies recieved: %v", r.Cookies())
 
 	if tokenAuth != "" {
 		log.Printf("Header recieved: %v", tokenAuth)
 		return tokenAuth
 	}
 
-	if tokenQuery != "" {
-		log.Printf("Query recieved: %v", tokenAuth)
-		return tokenQuery
-	}
-
+	log.Print("No header was recieved")
 	return ""
 }
