@@ -30,11 +30,7 @@ const (
 )
 
 func CreateAccessToken(userId string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId":    userId,
-		"expiredAt": time.Now().Add(JWTExpirationTime).Unix(),
-	})
-
+	token := CreateJWT(JWTExpirationTime, userId)
 	tokenString, err := token.SignedString([]byte(JWTSecret))
 	if err != nil {
 		return "", err
@@ -43,16 +39,20 @@ func CreateAccessToken(userId string) (string, error) {
 }
 
 func CreateRefreshToken(userId string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId":    userId,
-		"expiredAt": time.Now().Add(JWTRefreshExpirationTime).Unix(),
-	})
-
+	token := CreateJWT(JWTRefreshExpirationTime, userId)
 	tokenString, err := token.SignedString([]byte(JWTRefreshSecret))
 	if err != nil {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func CreateJWT(expiration time.Duration, userId string) *jwt.Token {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userId": userId,
+		"exp":    time.Now().Add(expiration).Unix(),
+	})
+	return token
 }
 
 func GetUserIdFromContext(ctx context.Context) (uuid.UUID, error) {
@@ -83,21 +83,45 @@ func PermissionDenied(w http.ResponseWriter) {
 }
 
 func ValidateAccessToken(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		// verify signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(JWTSecret), nil
 	})
+	// check for verification errors
+	if err != nil {
+		return nil, err
+	}
+
+	// check if token is valid
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return token, nil
 }
 
 func ValidateRefreshToken(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		// verify signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(JWTRefreshSecret), nil
 	})
+	// check for verification errors
+	if err != nil {
+		return nil, fmt.Errorf("error parsing token: %v", err)
+	}
+
+	// check if token is valid
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return token, nil
 }

@@ -30,9 +30,9 @@ func (a *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.ValidateAccessToken(refreshToken.Value)
+	token, err := auth.ValidateRefreshToken(refreshToken.Value)
 	if err != nil {
-		log.Printf("ValidateAccessToken(): %v", err)
+		log.Printf("ValidateRefreshToken(): %v", err)
 		auth.PermissionDenied(w)
 		return
 	}
@@ -58,5 +58,5 @@ func (a *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		auth.PermissionDenied(w)
 		return
 	}
-	json.NewEncoder(w).Encode(&newAccessToken)
+	json.NewEncoder(w).Encode(newAccessToken)
 }
