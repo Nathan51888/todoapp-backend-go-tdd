@@ -45,7 +45,8 @@ func TestUserRegisterHandler(t *testing.T) {
 }
 
 type UserLoginResponse struct {
-	Token string `json:"token"`
+	AccessToken  string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 func TestUserLoginHandler(t *testing.T) {
@@ -72,8 +73,38 @@ func TestUserLoginHandler(t *testing.T) {
 
 		var got UserLoginResponse
 		json.NewDecoder(res.Body).Decode(&got)
-		if got.Token == "" {
+		if got.AccessToken == "" {
 			t.Error("expected token to be not empty")
+		}
+	})
+	t.Run("returns both access and refresh token when logining in", func(t *testing.T) {
+		mux := http.NewServeMux()
+		password, err := auth.HashPassword("password")
+		if err != nil {
+			t.Fatal(err)
+		}
+		store := &inmemory.InMemoryUserStore{Users: []user.User{
+			{Email: "user@email.com", Password: password},
+		}}
+		handler.NewUserHandler(mux, store)
+
+		payloadBuff := new(bytes.Buffer)
+		user := handler.LoginUserPayload{"user@email.com", "password"}
+		json.NewEncoder(payloadBuff).Encode(&user)
+		req := httptest.NewRequest(http.MethodPost, "/login", payloadBuff)
+		res := httptest.NewRecorder()
+
+		mux.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusOK, res.Code)
+
+		var got UserLoginResponse
+		json.NewDecoder(res.Body).Decode(&got)
+		if got.AccessToken == "" {
+			t.Errorf("expected token to be not empty")
+		}
+		if got.RefreshToken == "" {
+			t.Errorf("expected refresh token to not be empty")
 		}
 	})
 }

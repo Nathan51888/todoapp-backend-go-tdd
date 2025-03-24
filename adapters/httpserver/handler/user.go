@@ -63,15 +63,22 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.CreateAccessToken(user.Id.String())
+	accessToken, err := auth.CreateAccessToken(user.Id.String())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Print(err)
+		log.Printf("LoginUser(): %v", err)
+		return
+	}
+
+	refreshToken, err := auth.CreateRefreshToken(user.Id.String())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("LoginUser(): %v", err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	json.NewEncoder(w).Encode(map[string]string{"token": accessToken, "refreshToken": refreshToken})
 }
 
 func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {

@@ -28,7 +28,7 @@ func TestAuthHandler(t *testing.T) {
 		t.Fatalf("failed creating refresh token: %v", err)
 	}
 
-	t.Run("returns access token given valid refresh token", func(t *testing.T) {
+	t.Run("returns access token with valid refresh token", func(t *testing.T) {
 		tokenCookie := http.Cookie{
 			Name:     "refreshToken",
 			Value:    refreshToken,
@@ -60,7 +60,7 @@ func TestAuthHandler(t *testing.T) {
 		assert.Equal(t, userId, id)
 	})
 
-	t.Run("returns 401 if refresh token is invalid", func(t *testing.T) {
+	t.Run("returns 401 if refresh token is expired", func(t *testing.T) {
 		token := auth.CreateJWT(time.Duration(-50)*time.Second, userId.String())
 		tokenString, err := token.SignedString([]byte(auth.JWTRefreshSecret))
 		if err != nil {
