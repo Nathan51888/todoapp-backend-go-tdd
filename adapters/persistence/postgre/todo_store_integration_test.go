@@ -25,8 +25,12 @@ func TestPostgreTodoStore(t *testing.T) {
 			t.Fatalf("failed to terminate pgContainer: %s", err)
 		}
 	})
+	userStore, err := postgre.NewPostgreUserStore(pgContainer.ConnectionString)
+	if err != nil {
+		t.Fatalf("failed to create user store: %v", err)
+	}
 
 	todo.TodoStoreContract{NewTodoStore: func() (todo.TodoStore, error) {
 		return postgre.NewPostgreTodoStore(pgContainer.ConnectionString)
-	}}.Test(t)
+	}, UserStore: userStore}.Test(t)
 }

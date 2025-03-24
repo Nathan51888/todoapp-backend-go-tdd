@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"log"
+	"mytodoapp/adapters/auth"
 	"mytodoapp/adapters/httpserver/middleware"
 	"mytodoapp/domain/todo"
 	"mytodoapp/domain/user"
@@ -46,7 +47,7 @@ func (t *TodoHandler) GetTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *TodoHandler) GetTodoByTitle(w http.ResponseWriter, r *http.Request, title string) {
-	result, err := t.todoStore.GetTodoByTitle(title)
+	result, err := t.todoStore.GetTodoByTitle(uuid.New(), title)
 	if err != nil {
 		log.Printf("Error GetTodoByTitle(): %v", err)
 	}
@@ -60,7 +61,7 @@ func (t *TodoHandler) GetTodoById(w http.ResponseWriter, r *http.Request, idStri
 		log.Printf("Error converting string to int: %v", err)
 	}
 
-	result, err := t.todoStore.GetTodoById(id)
+	result, err := t.todoStore.GetTodoById(uuid.New(), id)
 	if err != nil {
 		log.Printf("Error GetTodoById(): %v", err)
 	}
@@ -69,7 +70,7 @@ func (t *TodoHandler) GetTodoById(w http.ResponseWriter, r *http.Request, idStri
 }
 
 func (t *TodoHandler) GetTodoAll(w http.ResponseWriter, r *http.Request) {
-	result, err := t.todoStore.GetTodoAll()
+	result, err := t.todoStore.GetTodoAll(uuid.New())
 	if err != nil {
 		log.Printf("Error GetTodoAll(): %v", err)
 	}
@@ -79,9 +80,15 @@ func (t *TodoHandler) GetTodoAll(w http.ResponseWriter, r *http.Request) {
 
 func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
+	userId, err := auth.GetUserIdFromContext(r.Context())
+	if err != nil {
+		log.Printf("auth.GetUserIdFromContext: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	if title != "" {
-		result, err := t.todoStore.CreateTodo(title)
+		result, err := t.todoStore.CreateTodo(userId, title)
 		if err != nil {
 			log.Printf("Error CreateTodo(): %v", err)
 		}
@@ -103,7 +110,7 @@ func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("recieved todo title: %s", body.Title)
 		if body.Title != "" {
-			result, err := t.todoStore.CreateTodo(body.Title)
+			result, err := t.todoStore.CreateTodo(userId, body.Title)
 			if err != nil {
 				log.Printf("Error CreateTodo(): %v", err)
 			}
@@ -141,7 +148,7 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		result, err := t.todoStore.UpdateTodoTitle(id, title)
+		result, err := t.todoStore.UpdateTodoTitle(uuid.New(), id, title)
 		if err != nil {
 			log.Printf("Error UpdateTodoById(): %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -165,7 +172,7 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error parsing completed string to bool: %v", err)
 		}
-		result, err := t.todoStore.UpdateTodoStatus(id, completed)
+		result, err := t.todoStore.UpdateTodoStatus(uuid.New(), id, completed)
 		if err != nil {
 			log.Printf("Error UpdateTodoById(): %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -177,7 +184,7 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	// json body
 	var body todo.Todo
 	json.NewDecoder(r.Body).Decode(&body)
-	result, err := t.todoStore.UpdateTodoById(body.Id, body)
+	result, err := t.todoStore.UpdateTodoById(uuid.New(), body.Id, body)
 	if err != nil {
 		log.Printf("Error UpdateTodoById(): %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -192,7 +199,7 @@ func (t *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		log.Printf("DeleteTodo: %v", err)
 		return
 	}
-	result, err := t.todoStore.DeleteTodoById(id)
+	result, err := t.todoStore.DeleteTodoById(uuid.New(), id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("DeleteTodo: %v", err)

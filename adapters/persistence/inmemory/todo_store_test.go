@@ -9,5 +9,5 @@ import (
 func TestInMemoryTodoStore(t *testing.T) {
 	todo.TodoStoreContract{NewTodoStore: func() (todo.TodoStore, error) {
 		return inmemory.NewInMemoryTodoStore()
-	}}.Test(t)
+	}, UserStore: &inmemory.InMemoryUserStore{}}.Test(t)
 }
