@@ -25,7 +25,7 @@ const (
 
 // TODO: make it an env
 const (
-	JWTExpirationTime        = time.Second * time.Duration(60*5)
+	JWTExpirationTime        = time.Second * time.Duration(10)
 	JWTRefreshExpirationTime = time.Second * time.Duration(3600*24*7)
 )
 
@@ -33,7 +33,7 @@ func CreateAccessToken(userId string) (string, error) {
 	token := CreateJWT(JWTExpirationTime, userId)
 	tokenString, err := token.SignedString([]byte(JWTSecret))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to sign token string: %w", err)
 	}
 	return tokenString, nil
 }
@@ -42,7 +42,7 @@ func CreateRefreshToken(userId string) (string, error) {
 	token := CreateJWT(JWTRefreshExpirationTime, userId)
 	tokenString, err := token.SignedString([]byte(JWTRefreshSecret))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to sign token string: %w", err)
 	}
 	return tokenString, nil
 }
@@ -73,7 +73,6 @@ func GetAccessTokenFromRequest(r *http.Request) (string, error) {
 		return "", fmt.Errorf("no access token in header")
 	}
 
-	log.Printf("Access token recieved: %v", accessToken)
 	return accessToken, nil
 }
 
@@ -93,7 +92,7 @@ func ValidateAccessToken(tokenString string) (*jwt.Token, error) {
 	})
 	// check for verification errors
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse/verify token: %w", err)
 	}
 
 	// check if token is valid
@@ -115,7 +114,7 @@ func ValidateRefreshToken(tokenString string) (*jwt.Token, error) {
 	})
 	// check for verification errors
 	if err != nil {
-		return nil, fmt.Errorf("error parsing token: %v", err)
+		return nil, fmt.Errorf("failed to parse/verify token: %v", err)
 	}
 
 	// check if token is valid
