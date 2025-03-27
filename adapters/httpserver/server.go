@@ -21,6 +21,7 @@ func NewTodoServer(todoStore todo.TodoStore, userStore user.UserStore) *TodoServ
 	handler.NewAuthHandler(mux, userStore)
 	stack := middleware.CreateStack(
 		middleware.AllowCors,
+		middleware.RecoveryMiddleware,
 	)
 	handler := stack(mux)
 
