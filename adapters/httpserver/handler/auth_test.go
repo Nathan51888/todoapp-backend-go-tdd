@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"mytodoapp/adapters/auth"
@@ -29,24 +30,20 @@ func TestAuthHandler(t *testing.T) {
 	}
 
 	t.Run("returns access token with valid refresh token", func(t *testing.T) {
-		tokenCookie := http.Cookie{
-			Name:     "refreshToken",
-			Value:    refreshToken,
-			Expires:  time.Now().Add(time.Hour * time.Duration(24*7)),
-			Secure:   true,
-			HttpOnly: true,
-		}
-		req := httptest.NewRequest(http.MethodPost, "/refresh-token", nil)
-		req.AddCookie(&tokenCookie)
+		payloadBuff := new(bytes.Buffer)
+		payload := map[string]string{"refreshToken": refreshToken}
+		json.NewEncoder(payloadBuff).Encode(&payload)
+		req := httptest.NewRequest(http.MethodPost, "/refresh-token", payloadBuff)
 		res := httptest.NewRecorder()
 
 		handler.ServeHTTP(res, req)
 
 		assert.Equal(t, http.StatusOK, res.Code)
 
-		var got string
+		var got map[string]string
 		json.NewDecoder(res.Body).Decode(&got)
-		token, err := auth.ValidateAccessToken(got)
+		log.Println("Body: ", got)
+		token, err := auth.ValidateAccessToken(got["accessToken"])
 		if err != nil {
 			t.Fatalf("error ValidateAccessToken(): %v", err)
 			return
