@@ -6,6 +6,8 @@ import (
 	"mytodoapp/domain/todo"
 	"mytodoapp/domain/user"
 	"net/http"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type TodoServer struct {
@@ -19,8 +21,11 @@ func NewTodoServer(todoStore todo.TodoStore, userStore user.UserStore) *TodoServ
 	handler.NewTodoHandler(mux, todoStore, userStore)
 	handler.NewUserHandler(mux, userStore)
 	handler.NewAuthHandler(mux, userStore)
+	// setup prometheus
+	mux.Handle("/metrics", promhttp.Handler())
 	stack := middleware.CreateStack(
 		middleware.AllowCors,
+		middleware.PrometheusMiddleware,
 		middleware.RecoveryMiddleware,
 	)
 	handler := stack(mux)
