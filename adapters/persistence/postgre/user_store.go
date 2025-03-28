@@ -32,6 +32,7 @@ func (p *PostgreUserStore) CreateUser(email string, password string) (user.User,
 		"SELECT user_email FROM users WHERE user_email = $1",
 		email,
 	).Scan(&result)
+	// TODO: Might move this to user service
 	if result != "" && err != pgx.ErrNoRows {
 		return user.User{}, user.ErrUserEmailExists
 	}

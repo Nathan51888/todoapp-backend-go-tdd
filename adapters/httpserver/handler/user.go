@@ -28,11 +28,13 @@ type UserProfilePayload struct {
 }
 
 type UserHandler struct {
-	store user.UserStore
+	store   user.UserStore
+	service user.UserService
 }
 
 func NewUserHandler(mux *http.ServeMux, store user.UserStore) {
-	handler := &UserHandler{store}
+	userService := user.NewUserService(store)
+	handler := &UserHandler{store, *userService}
 	mux.HandleFunc("POST /login", handler.LoginUser)
 	mux.HandleFunc("POST /register", handler.RegisterUser)
 	mux.HandleFunc("GET /profile", middleware.WithJWTAuth(handler.GetUser, store))
@@ -48,37 +50,18 @@ func (u *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.store.GetUserByEmail(payload.Email)
+	tokens, err := u.service.LoginUser(payload.Email, payload.Password)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		log.Print("GetUserByEmail(): not found, invalid email or password")
-		fmt.Fprint(w, "not found, invalid email or password")
-		return
-	}
-
-	if !auth.ComparePassword(user.Password, payload.Password) {
-		w.WriteHeader(http.StatusBadRequest)
-		log.Print("ComparePassword(): not found, invalid email or password")
-		fmt.Fprint(w, "not found, invalid email or password")
-		return
-	}
-
-	accessToken, err := auth.CreateAccessToken(user.Id.String())
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("LoginUser(): %v", err)
-		return
-	}
-
-	refreshToken, err := auth.CreateRefreshToken(user.Id.String())
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("LoginUser(): %v", err)
+		apiError := FromError(err)
+		w.WriteHeader(apiError.Status)
+		// fmt.Fprint(w, apiError.Message)
+		fmt.Fprint(w, "invalid email or password")
+		log.Printf("handleLoginUser: %v", err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"token": accessToken, "refreshToken": refreshToken})
+	json.NewEncoder(w).Encode(map[string]string{"token": tokens.AccessToken, "refreshToken": tokens.RefreshToken})
 }
 
 func (u *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
