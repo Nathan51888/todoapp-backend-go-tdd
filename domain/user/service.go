@@ -56,21 +56,28 @@ func (u *UserService) LoginUser(email string, password string) (*LoginTokens, er
 }
 
 func (u *UserService) RegisterUser(email string, password string) error {
+	if email == "" {
+		return NewError(ErrBadRequest, fmt.Errorf("email is empty"))
+	}
+	if password == "" {
+		return NewError(ErrBadRequest, fmt.Errorf("password is empty"))
+	}
+
 	hashedPassword, err := auth.HashPassword(password)
 	if err != nil {
-		return fmt.Errorf("auth.HashPassword: %w", err)
+		return NewError(ErrInternalError, fmt.Errorf("auth.HashPassword: %w", err))
 	}
 
 	// check if user exists
 	_, err = u.store.GetUserByEmail(email)
 	if err == nil {
 		log.Printf("user with email %s already exists", email)
-		return fmt.Errorf("store.GetUserByEmail: %w", err)
+		return NewError(ErrInternalError, fmt.Errorf("store.GetUserByEmail: %w", err))
 	}
 
 	_, err = u.store.CreateUser(email, hashedPassword)
 	if err != nil {
-		return fmt.Errorf("store.CreateUser: %w", err)
+		return NewError(ErrInternalError, fmt.Errorf("store.CreateUser: %w", err))
 	}
 
 	return nil
@@ -79,7 +86,7 @@ func (u *UserService) RegisterUser(email string, password string) error {
 func (u *UserService) GetUser(userId uuid.UUID) (*UserProfile, error) {
 	user, err := u.store.GetUserById(userId)
 	if err != nil {
-		return &UserProfile{}, fmt.Errorf("store.GetUserById: %w", err)
+		return &UserProfile{}, NewError(ErrInternalError, fmt.Errorf("store.GetUserById: %w", err))
 	}
 
 	var userProfile UserProfile
