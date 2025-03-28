@@ -36,8 +36,8 @@ func (p *PostgreUserStore) CreateUser(email string, password string) (user.User,
 	if result != "" && err != pgx.ErrNoRows {
 		return user.User{}, user.ErrUserEmailExists
 	}
-	if err != nil {
-		return user.User{}, fmt.Errorf("CreateUser: %w", err)
+	if err != nil && err != pgx.ErrNoRows {
+		return user.User{}, fmt.Errorf("checking if email exists: %w", err)
 	}
 
 	// insert user
