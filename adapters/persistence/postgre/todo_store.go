@@ -19,7 +19,7 @@ func NewPostgreTodoStore(connString string) (*PostgreTodoStore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("NewPostgreTodoStore(): unable to connect to database: %w", err)
 	}
-	log.Println("Connected to database")
+	log.Println("TodoStore: Connected to database")
 	return &PostgreTodoStore{db: conn}, nil
 }
 

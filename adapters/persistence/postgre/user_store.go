@@ -2,7 +2,7 @@ package postgre
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 	"mytodoapp/domain/user"
 
@@ -17,10 +17,10 @@ type PostgreUserStore struct {
 func NewPostgreUserStore(connString string) (*PostgreUserStore, error) {
 	conn, err := pgx.Connect(context.Background(), connString)
 	if err != nil {
-		log.Printf("Unable to connect to database: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("unable to connect to database: %w", err)
 	}
-	log.Println("Connected to database")
+	// INFO
+	log.Println("UserStore: Connected to database")
 	return &PostgreUserStore{db: conn}, nil
 }
 
@@ -32,9 +32,11 @@ func (p *PostgreUserStore) CreateUser(email string, password string) (user.User,
 		"SELECT user_email FROM users WHERE user_email = $1",
 		email,
 	).Scan(&result)
-	if err != pgx.ErrNoRows {
-		log.Println("UserStore: user email already exists")
-		return user.User{}, errors.New("user email already exists")
+	if result != "" && err != pgx.ErrNoRows {
+		return user.User{}, user.ErrUserEmailExists
+	}
+	if err != nil {
+		return user.User{}, fmt.Errorf("CreateUser: %w", err)
 	}
 
 	// insert user
@@ -45,7 +47,7 @@ func (p *PostgreUserStore) CreateUser(email string, password string) (user.User,
 		email, password,
 	).Scan(&id)
 	if err != nil {
-		return user.User{}, err
+		return user.User{}, fmt.Errorf("CreateUser: %v", err)
 	}
 	return user.User{Id: id, Email: email, Password: password}, nil
 }
@@ -58,7 +60,7 @@ func (p *PostgreUserStore) GetUserByEmail(email string) (user.User, error) {
 		email,
 	).Scan(&result.Id, &result.Email, &result.Password)
 	if err != nil {
-		return user.User{}, err
+		return user.User{}, fmt.Errorf("GetUserByEmail: %v", err)
 	}
 	return result, nil
 }
@@ -71,7 +73,7 @@ func (p *PostgreUserStore) GetUserById(id uuid.UUID) (user.User, error) {
 		id,
 	).Scan(&result.Id, &result.Email, &result.Password)
 	if err != nil {
-		return user.User{}, err
+		return user.User{}, fmt.Errorf("GetUserById: %v", err)
 	}
 	return result, nil
 }
