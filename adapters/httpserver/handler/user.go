@@ -44,6 +44,7 @@ func NewUserHandler(mux *http.ServeMux, userStore user.UserStore) {
 func (u *UserHandler) handleLoginUser(w http.ResponseWriter, r *http.Request) {
 	var payload LoginUserPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
+	// FIXME: don't exapose password
 	log.Print("Login payload: ", payload)
 	if err != nil {
 		log.Printf("handleLoginUser: %v", err)
@@ -70,6 +71,7 @@ func (u *UserHandler) handleLoginUser(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
+	// FIXME: don't exapose password
 	log.Print("Register payload: ", payload)
 	if err != nil {
 		log.Print(err)
