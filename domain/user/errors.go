@@ -3,9 +3,13 @@ package user
 import "errors"
 
 var (
+	// svcError
 	ErrBadRequest    = errors.New("bad request")
 	ErrInternalError = errors.New("internal error")
 	ErrNotFound      = errors.New("not found")
+
+	// appError
+	ErrUserEmailExists = errors.New("user email already exists")
 )
 
 type Error struct {

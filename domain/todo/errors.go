@@ -3,9 +3,12 @@ package todo
 import "errors"
 
 var (
-	ErrBadRequest     = errors.New("bad request")
-	ErrInternalError  = errors.New("internal error")
-	ErrNotFound       = errors.New("not found")
+	// svcError
+	ErrBadRequest    = errors.New("bad request")
+	ErrInternalError = errors.New("internal error")
+	ErrNotFound      = errors.New("not found")
+
+	// appError
 	ErrTodoNotFound   = errors.New("todo not found")
 	ErrTodoIdEmpty    = errors.New("todo id is empty")
 	ErrTodoTitleEmpty = errors.New("title is empty")
