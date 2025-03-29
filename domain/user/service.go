@@ -70,12 +70,18 @@ func (u *UserService) RegisterUser(email string, password string) error {
 
 	// check if user exists
 	_, err = u.store.GetUserByEmail(email)
+	if errors.Is(err, ErrUserEmailExists) {
+		return NewError(ErrBadRequest, fmt.Errorf("store.GetUserByEmail: %w", err))
+	}
 	if err == nil {
 		log.Printf("user with email %s already exists", email)
 		return NewError(ErrInternalError, fmt.Errorf("store.GetUserByEmail: %w", err))
 	}
 
 	_, err = u.store.CreateUser(email, hashedPassword)
+	if errors.Is(err, ErrUserEmailExists) {
+		return NewError(ErrBadRequest, fmt.Errorf("store.CreateUser: %w", err))
+	}
 	if err != nil {
 		return NewError(ErrInternalError, fmt.Errorf("store.CreateUser: %w", err))
 	}
