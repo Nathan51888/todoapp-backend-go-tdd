@@ -150,44 +150,21 @@ func TestUpdateTodo(t *testing.T) {
 	})
 }
 
-// func TestDeleteTodo(t *testing.T) {
-// 	todoId := uuid.New()
-// 	todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-// 		{Id: todoId, Title: "Todo1", Completed: false},
-// 	}}
-// 	userId := uuid.New()
-// 	userStore := &inmemory.InMemoryUserStore{Users: []user.User{
-// 		{Id: userId},
-// 	}}
-// 	handler := createTodoHandler(todoStore, userStore)
-// 	token, err := auth.CreateAccessToken(userId.String())
-// 	if err != nil {
-// 		t.Fatalf("CreateJWT(): %v", err)
-// 	}
-//
-// 	t.Run("DELETE /todo: cannot delete todo without auth header", func(t *testing.T) {
-// 		req := httptest.NewRequest(http.MethodDelete, "/todo", nil)
-// 		res := httptest.NewRecorder()
-//
-// 		handler.ServeHTTP(res, req)
-//
-// 		assert.Equal(t, http.StatusUnauthorized, res.Code)
-// 	})
-// 	t.Run("DELETE /todo: can delete todo by id", func(t *testing.T) {
-// 		id := uuid.New()
-// 		handler := createTodoHandler(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-// 			{Id: id, Title: "Delete_this", Completed: false},
-// 		}}, userStore)
-//
-// 		req := httptest.NewRequest(http.MethodDelete, "/todo?id="+id.String(), nil)
-// 		req.Header.Add("Authorization", token)
-// 		res := httptest.NewRecorder()
-//
-// 		handler.ServeHTTP(res, req)
-//
-// 		want := todo.Todo{Id: id, Title: "Delete_this", Completed: false}
-// 		var got todo.Todo
-// 		json.NewDecoder(res.Body).Decode(&got)
-// 		assert.Equal(t, want, got)
-// 	})
-// }
+func TestDeleteTodo(t *testing.T) {
+	t.Run("DELETE /todo: can delete todo by id", func(t *testing.T) {
+		userId := uuid.New()
+		userStore := &inmemory.InMemoryUserStore{Users: []user.User{
+			{Id: userId},
+		}}
+		todoId := uuid.New()
+		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Id: todoId, Title: "Delete_this", Completed: false, UserId: userId},
+		}}
+		sut := todo.NewTodoService(todoStore, userStore)
+
+		got, err := sut.DeleteTodo(userId, todoId)
+		assert.NoError(t, err)
+		want := todo.Todo{Id: todoId, Title: "Delete_this", Completed: false, UserId: userId}
+		assert.Equal(t, want, got)
+	})
+}
