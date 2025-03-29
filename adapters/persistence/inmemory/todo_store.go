@@ -42,7 +42,20 @@ func (i *InMemoryTodoStore) GetTodoById(userId uuid.UUID, todoId uuid.UUID) (tod
 	return todo.Todo{}, errors.New("todo not found")
 }
 
-func (i *InMemoryTodoStore) CreateTodo(userId uuid.UUID, title string) (todo.Todo, error) {
+func (i *InMemoryTodoStore) CreateTodo(userId uuid.UUID, todoToCreate todo.Todo) (todo.Todo, error) {
+	if todoToCreate.Title == "" {
+		return todo.Todo{}, todo.ErrTodoTitleEmpty
+	}
+	newId := uuid.New()
+	createdTodo := todo.Todo{Id: newId, Title: todoToCreate.Title, Completed: todoToCreate.Completed, UserId: userId}
+	i.Todos = append(i.Todos, createdTodo)
+	return createdTodo, nil
+}
+
+func (i *InMemoryTodoStore) CreateTodoWithTitle(userId uuid.UUID, title string) (todo.Todo, error) {
+	if title == "" {
+		return todo.Todo{}, todo.ErrTodoTitleEmpty
+	}
 	newId := uuid.New()
 	createdTodo := todo.Todo{Id: newId, Title: title, Completed: false, UserId: userId}
 	i.Todos = append(i.Todos, createdTodo)

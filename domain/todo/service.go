@@ -65,10 +65,12 @@ func (t *TodoService) CreateTodo(userId uuid.UUID, todoToAdd Todo) (Todo, error)
 		return Todo{}, NewError(ErrBadRequest, errors.New("todo title is empty"))
 	}
 
-	result, err := t.todoStore.CreateTodo(userId, todoToAdd.Title)
+	result, err := t.todoStore.CreateTodo(userId, todoToAdd)
+	if errors.Is(err, ErrTodoTitleEmpty) {
+		return Todo{}, NewError(ErrBadRequest, fmt.Errorf("CreateTodo: %w", err))
+	}
 	if err != nil {
-		log.Printf("CreateTodo(): %v", err)
-		return Todo{}, NewError(ErrInternalError, err)
+		return Todo{}, NewError(ErrInternalError, fmt.Errorf("CreateTodo: %w", err))
 	}
 
 	return result, nil

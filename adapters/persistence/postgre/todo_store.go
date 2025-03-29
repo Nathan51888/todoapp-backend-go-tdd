@@ -77,7 +77,30 @@ func (p *PostgreTodoStore) GetTodoById(userId uuid.UUID, todoId uuid.UUID) (todo
 	return result, nil
 }
 
-func (p *PostgreTodoStore) CreateTodo(userId uuid.UUID, title string) (todo.Todo, error) {
+func (p *PostgreTodoStore) CreateTodo(userId uuid.UUID, todoToAdd todo.Todo) (todo.Todo, error) {
+	if todoToAdd.Title == "" {
+		return todo.Todo{}, todo.ErrTodoTitleEmpty
+	}
+	var result todo.Todo
+	err := p.db.QueryRow(
+		context.Background(),
+		"INSERT INTO todos (todo_id, title, completed, user_id) VALUES (DEFAULT, $1, $2, $3) RETURNING todo_id",
+		todoToAdd.Title, todoToAdd.Completed, userId,
+	).Scan(&result.Id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			// TODO: convert to error log
+			log.Println("CreateTodo(): No rows")
+		}
+		return todo.Todo{}, fmt.Errorf("CreateTodo(): QueryRow failed: %v", err)
+	}
+	return todo.Todo{Id: result.Id, Title: todoToAdd.Title, Completed: todoToAdd.Completed, UserId: userId}, nil
+}
+
+func (p *PostgreTodoStore) CreateTodoWithTitle(userId uuid.UUID, title string) (todo.Todo, error) {
+	if title == "" {
+		return todo.Todo{}, todo.ErrTodoTitleEmpty
+	}
 	var result todo.Todo
 	err := p.db.QueryRow(
 		context.Background(),
@@ -86,6 +109,7 @@ func (p *PostgreTodoStore) CreateTodo(userId uuid.UUID, title string) (todo.Todo
 	).Scan(&result.Id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
+			// TODO: convert to error log
 			log.Println("CreateTodo(): No rows")
 		}
 		return todo.Todo{}, fmt.Errorf("CreateTodo(): QueryRow failed: %v", err)

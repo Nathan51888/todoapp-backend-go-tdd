@@ -11,13 +11,13 @@ import (
 )
 
 func TestGetTodo(t *testing.T) {
-	todoId := uuid.New()
-	todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-		{Id: todoId, Title: "Todo1", Completed: false},
-	}}
 	userId := uuid.New()
 	userStore := &inmemory.InMemoryUserStore{Users: []user.User{
 		{Id: userId},
+	}}
+	todoId := uuid.New()
+	todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+		{Id: todoId, Title: "Todo1", Completed: false, UserId: userId},
 	}}
 	sut := todo.NewTodoService(todoStore, userStore)
 
@@ -26,35 +26,35 @@ func TestGetTodo(t *testing.T) {
 
 		got, err := sut.GetTodoByTitle(userId, title)
 		assert.NoError(t, err)
-		want := todo.Todo{Id: todoId, Title: "Todo1", Completed: false}
+		want := todo.Todo{Id: todoId, Title: "Todo1", Completed: false, UserId: userId}
 		assert.Equal(t, want, got)
 	})
-	t.Run("GET /todo: can get todo by id", func(t *testing.T) {
+	t.Run("can get todo by id", func(t *testing.T) {
 		id := todoId
 
 		got, err := sut.GetTodoById(userId, id)
 		assert.NoError(t, err)
-		want := todo.Todo{Id: todoId, Title: "Todo1", Completed: false}
+		want := todo.Todo{Id: todoId, Title: "Todo1", Completed: false, UserId: userId}
 		assert.Equal(t, want, got)
 	})
 }
 
 func TestGetAllTodos(t *testing.T) {
-	t.Run("GET /todo: can get all todos as slice", func(t *testing.T) {
-		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-			{Title: "Todo1", Completed: false},
-			{Title: "Todo2", Completed: true},
-			{Title: "Todo3", Completed: false},
-		}}
+	t.Run("can get all todos as slice", func(t *testing.T) {
 		userId := uuid.New()
 		userStore := &inmemory.InMemoryUserStore{Users: []user.User{
 			{Id: userId},
 		}}
+		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Title: "Todo1", Completed: false, UserId: userId},
+			{Title: "Todo2", Completed: true, UserId: userId},
+			{Title: "Todo3", Completed: false, UserId: userId},
+		}}
 		sut := todo.NewTodoService(todoStore, userStore)
 		want := []todo.Todo{
-			{Title: "Todo1", Completed: false},
-			{Title: "Todo2", Completed: true},
-			{Title: "Todo3", Completed: false},
+			{Title: "Todo1", Completed: false, UserId: userId},
+			{Title: "Todo2", Completed: true, UserId: userId},
+			{Title: "Todo3", Completed: false, UserId: userId},
 		}
 
 		got, err := sut.GetTodoAll(userId)
@@ -63,28 +63,29 @@ func TestGetAllTodos(t *testing.T) {
 	})
 }
 
-func TestPOST(t *testing.T) {
-	todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{}}
+func TestCreateTodo(t *testing.T) {
 	userId := uuid.New()
 	userStore := &inmemory.InMemoryUserStore{Users: []user.User{
 		{Id: userId},
 	}}
+	todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{}}
 	sut := todo.NewTodoService(todoStore, userStore)
 
-	t.Run("can create todo with json", func(t *testing.T) {
-		todoToAdd := todo.Todo{Title: "Todo_new", Completed: false}
+	t.Run("can create todo with a todo object", func(t *testing.T) {
+		todoToAdd := todo.Todo{Title: "Todo_new", Completed: true}
 
 		got, err := sut.CreateTodo(userId, todoToAdd)
 		assert.NoError(t, err)
-		want := todo.Todo{Title: "Todo_new", Completed: false}
+		want := todo.Todo{Title: "Todo_new", Completed: true, UserId: userId}
 		assert.Equal(t, want.Title, got.Title)
 		assert.Equal(t, want.Completed, got.Completed)
+		assert.Equal(t, want.UserId, got.UserId)
 	})
-	t.Run("can create todo with query strings", func(t *testing.T) {
+	t.Run("can create todo with correct title", func(t *testing.T) {
 		todoTitle := "Todo_new"
+		todoToAdd := todo.Todo{Title: todoTitle}
 
-		// TODO: take todo object as param
-		got, err := sut.CreateTodo(userId, todo.Todo{Title: todoTitle})
+		got, err := sut.CreateTodo(userId, todoToAdd)
 		assert.NoError(t, err)
 		want := todo.Todo{Title: "Todo_new", Completed: false}
 		assert.Equal(t, want.Title, got.Title)
@@ -98,42 +99,58 @@ func TestPOST(t *testing.T) {
 	})
 }
 
-func TestPUT(t *testing.T) {
+func TestUpdateTodo(t *testing.T) {
 	t.Run("can update todo's title by todo id", func(t *testing.T) {
-		todoId := uuid.New()
-		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-			{Id: todoId, Title: "Todo_new", Completed: false},
-		}}
 		userId := uuid.New()
 		userStore := &inmemory.InMemoryUserStore{Users: []user.User{
 			{Id: userId},
 		}}
+		todoId := uuid.New()
+		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Id: todoId, Title: "Todo_new", Completed: false, UserId: userId},
+		}}
 		sut := todo.NewTodoService(todoStore, userStore)
-		want := todo.Todo{Id: todoId, Title: "Todo_updated", Completed: false}
+		want := todo.Todo{Id: todoId, Title: "Todo_updated", Completed: false, UserId: userId}
 
 		got, err := sut.UpdateTodoTitle(userId, todoId, want.Title)
 		assert.NoError(t, err)
 		assert.Equal(t, want, got)
 	})
 	t.Run("can update todo's completed by todo id", func(t *testing.T) {
-		todoId := uuid.New()
-		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
-			{Id: todoId, Title: "Todo_new", Completed: false},
-		}}
 		userId := uuid.New()
 		userStore := &inmemory.InMemoryUserStore{Users: []user.User{
 			{Id: userId},
 		}}
+		todoId := uuid.New()
+		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Id: todoId, Title: "Todo_new", Completed: false, UserId: userId},
+		}}
 		sut := todo.NewTodoService(todoStore, userStore)
-		want := todo.Todo{Id: todoId, Title: "Todo_new", Completed: true}
+		want := todo.Todo{Id: todoId, Title: "Todo_new", Completed: true, UserId: userId}
 
 		got, err := sut.UpdateTodoStatus(userId, todoId, want.Completed)
 		assert.NoError(t, err)
 		assert.Equal(t, want, got)
 	})
+	t.Run("can update all fields on todo", func(t *testing.T) {
+		userId := uuid.New()
+		userStore := &inmemory.InMemoryUserStore{Users: []user.User{
+			{Id: userId},
+		}}
+		todoId := uuid.New()
+		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Id: todoId, Title: "Todo_new", Completed: false, UserId: userId},
+		}}
+		sut := todo.NewTodoService(todoStore, userStore)
+		want := todo.Todo{Id: todoId, Title: "Todo_updated", Completed: true, UserId: userId}
+
+		got, err := sut.UpdateTodoById(userId, todoId, want)
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
 }
 
-// func TestDELETE(t *testing.T) {
+// func TestDeleteTodo(t *testing.T) {
 // 	todoId := uuid.New()
 // 	todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
 // 		{Id: todoId, Title: "Todo1", Completed: false},

@@ -147,7 +147,8 @@ func (t *TodoHandler) handleCreateTodo(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("recieved todo title: %s", body.Title)
 		if body.Title != "" {
-			result, err := t.todoStore.CreateTodo(userId, body.Title)
+			todoToAdd := todo.Todo{Title: body.Title}
+			result, err := t.service.CreateTodo(userId, todoToAdd)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				log.Printf("CreateTodo(): %v", err)
