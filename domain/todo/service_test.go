@@ -151,7 +151,7 @@ func TestUpdateTodo(t *testing.T) {
 }
 
 func TestDeleteTodo(t *testing.T) {
-	t.Run("DELETE /todo: can delete todo by id", func(t *testing.T) {
+	t.Run("can delete todo by id", func(t *testing.T) {
 		userId := uuid.New()
 		userStore := &inmemory.InMemoryUserStore{Users: []user.User{
 			{Id: userId},
@@ -166,5 +166,22 @@ func TestDeleteTodo(t *testing.T) {
 		assert.NoError(t, err)
 		want := todo.Todo{Id: todoId, Title: "Delete_this", Completed: false, UserId: userId}
 		assert.Equal(t, want, got)
+	})
+	t.Run("can't delete todo if todoId is invalid", func(t *testing.T) {
+		userId := uuid.New()
+		userStore := &inmemory.InMemoryUserStore{Users: []user.User{
+			{Id: userId},
+		}}
+		todoId := uuid.New()
+		todoStore := &inmemory.InMemoryTodoStore{Todos: []todo.Todo{
+			{Id: todoId, Title: "Delete_this", Completed: false, UserId: userId},
+		}}
+		sut := todo.NewTodoService(todoStore, userStore)
+		invalidId := uuid.New()
+
+		got, err := sut.DeleteTodo(userId, invalidId)
+		assert.Error(t, err)
+		want := todo.Todo{Id: todoId, Title: "Delete_this", Completed: false, UserId: userId}
+		assert.NotEqual(t, want, got)
 	})
 }

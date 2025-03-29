@@ -63,10 +63,10 @@ func (t *TodoService) CreateTodo(userId uuid.UUID, todoToAdd Todo) (Todo, error)
 
 	result, err := t.todoStore.CreateTodo(userId, todoToAdd)
 	if errors.Is(err, ErrTodoTitleEmpty) {
-		return Todo{}, NewError(ErrBadRequest, fmt.Errorf("CreateTodo: %w", err))
+		return Todo{}, NewError(ErrBadRequest, fmt.Errorf("CreateTodo(): %w", err))
 	}
 	if err != nil {
-		return Todo{}, NewError(ErrInternalError, fmt.Errorf("CreateTodo: %w", err))
+		return Todo{}, NewError(ErrInternalError, fmt.Errorf("CreateTodo(): %w", err))
 	}
 
 	return result, nil
@@ -82,10 +82,10 @@ func (t *TodoService) UpdateTodoTitle(userId uuid.UUID, todoId uuid.UUID, title 
 
 	result, err := t.todoStore.UpdateTodoTitle(userId, todoId, title)
 	if errors.Is(err, ErrTodoNotFound) {
-		return Todo{}, NewError(ErrNotFound, err)
+		return Todo{}, NewError(ErrNotFound, fmt.Errorf("UpdateTodoTitle(): %w", err))
 	}
 	if err != nil {
-		return Todo{}, NewError(ErrInternalError, err)
+		return Todo{}, NewError(ErrInternalError, fmt.Errorf("UpdateTodoTitle(): %w", err))
 	}
 
 	return result, nil
@@ -102,10 +102,10 @@ func (t *TodoService) UpdateTodoById(userId uuid.UUID, todoId uuid.UUID, changed
 	// Full update
 	result, err := t.todoStore.UpdateTodoById(userId, todoId, changedTodo)
 	if errors.Is(err, ErrTodoNotFound) {
-		return Todo{}, NewError(ErrNotFound, err)
+		return Todo{}, NewError(ErrNotFound, fmt.Errorf("UpdateTodoById(): %w", err))
 	}
 	if err != nil {
-		return Todo{}, NewError(ErrInternalError, err)
+		return Todo{}, NewError(ErrInternalError, fmt.Errorf("UpdateTodoById(): %w", err))
 	}
 
 	return result, nil
@@ -121,7 +121,7 @@ func (t *TodoService) UpdateTodoStatus(userId uuid.UUID, todoId uuid.UUID, compl
 
 	result, err := t.todoStore.UpdateTodoStatus(userId, todoId, completed)
 	if errors.Is(err, ErrTodoNotFound) {
-		return Todo{}, NewError(ErrNotFound, err)
+		return Todo{}, NewError(ErrNotFound, fmt.Errorf("UpdateTodoStatus(): %w", err))
 	}
 	if err != nil {
 		return Todo{}, NewError(ErrInternalError, fmt.Errorf("UpdateTodoStatus(): %v", err))
@@ -130,27 +130,21 @@ func (t *TodoService) UpdateTodoStatus(userId uuid.UUID, todoId uuid.UUID, compl
 	return result, nil
 }
 
-func (t *TodoService) DeleteTodo(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(r.URL.Query().Get("id"))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("DeleteTodo: %v", err)
-		return
+func (t *TodoService) DeleteTodo(userId uuid.UUID, todoId uuid.UUID) (Todo, error) {
+	if userId == uuid.Nil {
+		return Todo{}, NewError(ErrBadRequest, ErrUserIdEmpty)
+	}
+	if todoId == uuid.Nil {
+		return Todo{}, NewError(ErrBadRequest, ErrTodoIdEmpty)
 	}
 
-	userId, err := auth.GetUserIdFromContext(r.Context())
+	result, err := t.todoStore.DeleteTodoById(userId, todoId)
+	if errors.Is(err, ErrTodoNotFound) {
+		return Todo{}, NewError(ErrBadRequest, fmt.Errorf("DeleteTodoById(): %w", err))
+	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("auth.GetUserIdFromContext: %v", err)
-		return
+		return Todo{}, NewError(ErrInternalError, fmt.Errorf("DeleteTodoById(): %w", err))
 	}
 
-	result, err := t.todoStore.DeleteTodoById(userId, id)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("DeleteTodo: %v", err)
-		return
-	}
-
-	json.NewEncoder(w).Encode(result)
+	return result, nil
 }
