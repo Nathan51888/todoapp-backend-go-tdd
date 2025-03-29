@@ -3,9 +3,13 @@ package todo
 import "errors"
 
 var (
-	ErrBadRequest    = errors.New("bad request")
-	ErrInternalError = errors.New("internal error")
-	ErrNotFound      = errors.New("not found")
+	ErrBadRequest     = errors.New("bad request")
+	ErrInternalError  = errors.New("internal error")
+	ErrNotFound       = errors.New("not found")
+	ErrTodoNotFound   = errors.New("todo not found")
+	ErrTodoIdEmpty    = errors.New("todo id is empty")
+	ErrTodoTitleEmpty = errors.New("title is empty")
+	ErrUserIdEmpty    = errors.New("user id is empty")
 )
 
 type Error struct {

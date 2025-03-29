@@ -1,14 +1,7 @@
 package todo
 
 import (
-	"errors"
-
 	"github.com/google/uuid"
-)
-
-var (
-	ErrTodoNotFound   = errors.New("todo not found")
-	ErrTodoTitleEmpty = errors.New("title is empty")
 )
 
 type TodoStore interface {

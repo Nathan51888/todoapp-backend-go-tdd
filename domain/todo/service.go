@@ -1,13 +1,9 @@
 package todo
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"mytodoapp/adapters/auth"
 	"mytodoapp/domain/user"
-	"net/http"
 
 	"github.com/google/uuid"
 )
@@ -59,10 +55,10 @@ func (t *TodoService) GetTodoAll(userId uuid.UUID) ([]Todo, error) {
 
 func (t *TodoService) CreateTodo(userId uuid.UUID, todoToAdd Todo) (Todo, error) {
 	if userId == uuid.Nil {
-		return Todo{}, NewError(ErrBadRequest, errors.New("userId is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrUserIdEmpty)
 	}
 	if todoToAdd.Title == "" {
-		return Todo{}, NewError(ErrBadRequest, errors.New("todo title is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrTodoTitleEmpty)
 	}
 
 	result, err := t.todoStore.CreateTodo(userId, todoToAdd)
@@ -78,10 +74,10 @@ func (t *TodoService) CreateTodo(userId uuid.UUID, todoToAdd Todo) (Todo, error)
 
 func (t *TodoService) UpdateTodoTitle(userId uuid.UUID, todoId uuid.UUID, title string) (Todo, error) {
 	if userId == uuid.Nil {
-		return Todo{}, NewError(ErrBadRequest, errors.New("userId is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrUserIdEmpty)
 	}
 	if todoId == uuid.Nil {
-		return Todo{}, NewError(ErrBadRequest, errors.New("todoId is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrTodoIdEmpty)
 	}
 
 	result, err := t.todoStore.UpdateTodoTitle(userId, todoId, title)
@@ -97,10 +93,10 @@ func (t *TodoService) UpdateTodoTitle(userId uuid.UUID, todoId uuid.UUID, title 
 
 func (t *TodoService) UpdateTodoById(userId uuid.UUID, todoId uuid.UUID, changedTodo Todo) (Todo, error) {
 	if userId == uuid.Nil {
-		return Todo{}, NewError(ErrBadRequest, errors.New("userId is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrUserIdEmpty)
 	}
 	if todoId == uuid.Nil {
-		return Todo{}, NewError(ErrBadRequest, errors.New("todoId is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrTodoIdEmpty)
 	}
 
 	// Full update
@@ -117,10 +113,10 @@ func (t *TodoService) UpdateTodoById(userId uuid.UUID, todoId uuid.UUID, changed
 
 func (t *TodoService) UpdateTodoStatus(userId uuid.UUID, todoId uuid.UUID, completed bool) (Todo, error) {
 	if userId == uuid.Nil {
-		return Todo{}, NewError(ErrBadRequest, errors.New("userId is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrUserIdEmpty)
 	}
 	if todoId == uuid.Nil {
-		return Todo{}, NewError(ErrBadRequest, errors.New("todoId is empty"))
+		return Todo{}, NewError(ErrBadRequest, ErrTodoTitleEmpty)
 	}
 
 	result, err := t.todoStore.UpdateTodoStatus(userId, todoId, completed)
