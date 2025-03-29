@@ -30,6 +30,14 @@ func NewUserService(store UserStore) *UserService {
 }
 
 func (u *UserService) LoginUser(email string, password string) (*LoginTokens, error) {
+	if email == "" {
+		return nil, NewError(ErrBadRequest, ErrEmailEmpty)
+	}
+	if password == "" {
+		return nil, NewError(ErrBadRequest, ErrPasswordEmpty)
+	}
+
+	// check if email exists
 	user, err := u.store.GetUserByEmail(email)
 	if errors.Is(err, ErrUserEmailExists) {
 		return &LoginTokens{}, NewError(ErrBadRequest, err)
@@ -38,15 +46,18 @@ func (u *UserService) LoginUser(email string, password string) (*LoginTokens, er
 		return &LoginTokens{}, NewError(ErrInternalError, fmt.Errorf("email not found GetUserByEmail: %w", err))
 	}
 
+	// check password
 	if !auth.ComparePassword(user.Password, password) {
 		return &LoginTokens{}, NewError(ErrBadRequest, fmt.Errorf("wrong password"))
 	}
 
+	// create access token
 	accessToken, err := auth.CreateAccessToken(user.Id.String())
 	if err != nil {
 		return &LoginTokens{}, NewError(ErrInternalError, fmt.Errorf("auth.CreateAccessToken: %w", err))
 	}
 
+	// craete refresh token
 	refreshToken, err := auth.CreateRefreshToken(user.Id.String())
 	if err != nil {
 		return &LoginTokens{}, NewError(ErrInternalError, fmt.Errorf("auth.CreateRefreshToken: %w", err))
@@ -57,12 +68,13 @@ func (u *UserService) LoginUser(email string, password string) (*LoginTokens, er
 
 func (u *UserService) RegisterUser(email string, password string) error {
 	if email == "" {
-		return NewError(ErrBadRequest, fmt.Errorf("email is empty"))
+		return NewError(ErrBadRequest, ErrEmailEmpty)
 	}
 	if password == "" {
-		return NewError(ErrBadRequest, fmt.Errorf("password is empty"))
+		return NewError(ErrBadRequest, ErrPasswordEmpty)
 	}
 
+	// hash password
 	hashedPassword, err := auth.HashPassword(password)
 	if err != nil {
 		return NewError(ErrInternalError, fmt.Errorf("auth.HashPassword: %w", err))
@@ -78,6 +90,7 @@ func (u *UserService) RegisterUser(email string, password string) error {
 		return NewError(ErrInternalError, fmt.Errorf("store.GetUserByEmail: %w", err))
 	}
 
+	// create user in store
 	_, err = u.store.CreateUser(email, hashedPassword)
 	if errors.Is(err, ErrUserEmailExists) {
 		return NewError(ErrBadRequest, fmt.Errorf("store.CreateUser: %w", err))

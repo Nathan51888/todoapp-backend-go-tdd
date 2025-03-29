@@ -10,6 +10,8 @@ var (
 
 	// appError
 	ErrUserEmailExists = errors.New("user email already exists")
+	ErrEmailEmpty      = errors.New("email is empty")
+	ErrPasswordEmpty   = errors.New("password is empty")
 )
 
 type Error struct {
