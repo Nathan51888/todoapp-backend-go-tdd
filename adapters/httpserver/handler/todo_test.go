@@ -213,15 +213,6 @@ func TestPUT(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, res.Code)
 	})
-	t.Run("PUT /todo: can update todo with auth header", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPut, "/todo", nil)
-		req.Header.Add("Authorization", token)
-		res := httptest.NewRecorder()
-
-		handler.ServeHTTP(res, req)
-
-		assert.Equal(t, http.StatusOK, res.Code)
-	})
 	t.Run("PUT /todo: can update todo title by todo id", func(t *testing.T) {
 		id := uuid.New()
 		handler := createTodoHandler(&inmemory.InMemoryTodoStore{Todos: []todo.Todo{

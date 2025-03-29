@@ -1,6 +1,12 @@
 package todo
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
+
+var ErrTodoNotFound = errors.New("todo not found")
 
 type TodoStore interface {
 	GetTodoAll(userId uuid.UUID) ([]Todo, error)

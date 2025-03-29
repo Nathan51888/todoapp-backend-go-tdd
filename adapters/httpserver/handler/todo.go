@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"mytodoapp/adapters/auth"
 	"mytodoapp/adapters/httpserver/middleware"
@@ -16,20 +17,24 @@ import (
 type TodoHandler struct {
 	todoStore todo.TodoStore
 	userStore user.UserStore
+	service   todo.TodoService
 }
 
 func NewTodoHandler(mux *http.ServeMux, todoStore todo.TodoStore, userStore user.UserStore) {
+	todoService := todo.NewTodoService(todoStore, userStore)
 	handler := &TodoHandler{
 		todoStore: todoStore,
 		userStore: userStore,
+		service:   *todoService,
 	}
-	mux.HandleFunc("GET /todo", middleware.WithJWTAuth(handler.GetTodo, userStore))
-	mux.HandleFunc("POST /todo", middleware.WithJWTAuth(handler.CreateTodo, userStore))
-	mux.HandleFunc("PUT /todo", middleware.WithJWTAuth(handler.UpdateTodo, userStore))
-	mux.HandleFunc("DELETE /todo", middleware.WithJWTAuth(handler.DeleteTodo, userStore))
+	mux.HandleFunc("GET /todo", middleware.WithJWTAuth(handler.handleGetTodo, userStore))
+	mux.HandleFunc("POST /todo", middleware.WithJWTAuth(handler.handleCreateTodo, userStore))
+	mux.HandleFunc("PUT /todo", middleware.WithJWTAuth(handler.handleUpdateTodo, userStore))
+	mux.HandleFunc("DELETE /todo", middleware.WithJWTAuth(handler.handleDeleteTodo, userStore))
 }
 
-func (t *TodoHandler) GetTodo(w http.ResponseWriter, r *http.Request) {
+// GET /todo
+func (t *TodoHandler) handleGetTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 	id := r.URL.Query().Get("id")
 
@@ -104,7 +109,8 @@ func (t *TodoHandler) GetTodoAll(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&result)
 }
 
-func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
+// POST /todo
+func (t *TodoHandler) handleCreateTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 	userId, err := auth.GetUserIdFromContext(r.Context())
 	if err != nil {
@@ -114,10 +120,13 @@ func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if title != "" {
-		result, err := t.todoStore.CreateTodo(userId, title)
+		todoToAdd := todo.Todo{Title: title}
+		result, err := t.service.CreateTodo(userId, todoToAdd)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Printf("CreateTodo(): %v", err)
+			apiError := FromError(err)
+			w.WriteHeader(apiError.Status)
+			fmt.Fprint(w, apiError.Message)
+			log.Printf("handleCreateTodo(): %v", err)
 			return
 		}
 
@@ -162,8 +171,9 @@ func (t *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	log.Print("CreateTodo: stange nothing happened")
 }
 
-func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+// PUT /todo
+func (t *TodoHandler) handleUpdateTodo(w http.ResponseWriter, r *http.Request) {
+	todoId := r.URL.Query().Get("id")
 	title := r.URL.Query().Get("title")
 	completed := r.URL.Query().Get("completed")
 	userId, err := auth.GetUserIdFromContext(r.Context())
@@ -174,31 +184,34 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if title != "" {
-		if id == "" {
+		if todoId == "" {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		id, err := uuid.Parse(id)
+		todoId, err := uuid.Parse(todoId)
 		if err != nil {
-			log.Printf("failed parsing id string: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("failed parsing id string: %v", err)
 			return
 		}
-		result, err := t.todoStore.UpdateTodoTitle(userId, id, title)
+		result, err := t.service.UpdateTodoTitle(userId, todoId, title)
 		if err != nil {
+			apiError := FromError(err)
+			w.WriteHeader(apiError.Status)
+			fmt.Fprint(w, apiError.Message)
 			log.Printf("UpdateTodoById(): %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		json.NewEncoder(w).Encode(&result)
 		return
 	}
 
 	if completed != "" {
-		if id == "" {
+		if todoId == "" {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		id, err := uuid.Parse(id)
+		todoId, err := uuid.Parse(todoId)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Printf("failed parsing id string: %v", err)
@@ -210,9 +223,11 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 			log.Printf("failed parsing completed string to bool: %v", err)
 			return
 		}
-		result, err := t.todoStore.UpdateTodoStatus(userId, id, completed)
+		result, err := t.service.UpdateTodoStatus(userId, todoId, completed)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			apiError := FromError(err)
+			w.WriteHeader(apiError.Status)
+			fmt.Fprint(w, apiError.Message)
 			log.Printf("UpdateTodoById(): %v", err)
 			return
 		}
@@ -221,9 +236,9 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// json body
-	var body todo.Todo
-	json.NewDecoder(r.Body).Decode(&body)
-	result, err := t.todoStore.UpdateTodoById(userId, body.Id, body)
+	var gotTodo todo.Todo
+	json.NewDecoder(r.Body).Decode(&gotTodo)
+	result, err := t.service.UpdateTodoById(userId, gotTodo.Id, gotTodo)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("UpdateTodoById(): %v", err)
@@ -232,7 +247,8 @@ func (t *TodoHandler) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&result)
 }
 
-func (t *TodoHandler) DeleteTodo(w http.ResponseWriter, r *http.Request) {
+// DELETE /todo
+func (t *TodoHandler) handleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(r.URL.Query().Get("id"))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
