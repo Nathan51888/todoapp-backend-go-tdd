@@ -15,17 +15,13 @@ import (
 )
 
 type TodoHandler struct {
-	todoStore todo.TodoStore
-	userStore user.UserStore
-	service   todo.TodoService
+	service todo.TodoService
 }
 
 func NewTodoHandler(mux *http.ServeMux, todoStore todo.TodoStore, userStore user.UserStore) {
 	todoService := todo.NewTodoService(todoStore, userStore)
 	handler := &TodoHandler{
-		todoStore: todoStore,
-		userStore: userStore,
-		service:   *todoService,
+		service: *todoService,
 	}
 	mux.HandleFunc("GET /todo", middleware.WithJWTAuth(handler.handleGetTodo, userStore))
 	mux.HandleFunc("POST /todo", middleware.WithJWTAuth(handler.handleCreateTodo, userStore))
@@ -38,71 +34,66 @@ func (t *TodoHandler) handleGetTodo(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
 	id := r.URL.Query().Get("id")
 
-	if title != "" {
-		t.GetTodoByTitle(w, r, title)
-		return
-	}
-
-	if id != "" {
-		t.GetTodoById(w, r, id)
-		return
-	}
-
-	t.GetTodoAll(w, r)
-}
-
-func (t *TodoHandler) GetTodoByTitle(w http.ResponseWriter, r *http.Request, title string) {
 	userId, err := auth.GetUserIdFromContext(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("auth.GetUserIdFromContext(): %v", err)
 		return
 	}
-	result, err := t.todoStore.GetTodoByTitle(userId, title)
+
+	if title != "" {
+		t.GetTodoByTitle(w, r, userId, title)
+		return
+	}
+
+	if id != "" {
+		t.GetTodoById(w, r, userId, id)
+		return
+	}
+
+	t.GetTodoAll(w, r, userId)
+}
+
+func (t *TodoHandler) GetTodoByTitle(w http.ResponseWriter, r *http.Request, userId uuid.UUID, title string) {
+	result, err := t.service.GetTodoByTitle(userId, title)
 	if err != nil {
-		log.Printf("GetTodoByTitle(): %v", err)
+		apiError := FromError(err)
+		w.WriteHeader(apiError.Status)
+		fmt.Fprint(w, apiError.Message)
+		log.Printf("handler: GetTodoByTitle(): %v", err)
+		return
 	}
 
 	json.NewEncoder(w).Encode(&result)
 }
 
-func (t *TodoHandler) GetTodoById(w http.ResponseWriter, r *http.Request, idString string) {
-	id, err := uuid.Parse(idString)
+func (t *TodoHandler) GetTodoById(w http.ResponseWriter, r *http.Request, userId uuid.UUID, todoIdString string) {
+	id, err := uuid.Parse(todoIdString)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("failed converting string to int: %v", err)
 		return
 	}
 
-	userId, err := auth.GetUserIdFromContext(r.Context())
+	result, err := t.service.GetTodoById(userId, id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("auth.GetUserIdFromContext(): %v", err)
-		return
-	}
-
-	result, err := t.todoStore.GetTodoById(userId, id)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("GetTodoById(): %v", err)
+		apiError := FromError(err)
+		w.WriteHeader(apiError.Status)
+		fmt.Fprint(w, apiError.Message)
+		log.Printf("handler: GetTodoById(): %v", err)
 		return
 	}
 
 	json.NewEncoder(w).Encode(result)
 }
 
-func (t *TodoHandler) GetTodoAll(w http.ResponseWriter, r *http.Request) {
-	userId, err := auth.GetUserIdFromContext(r.Context())
+func (t *TodoHandler) GetTodoAll(w http.ResponseWriter, r *http.Request, userId uuid.UUID) {
+	result, err := t.service.GetTodoAll(userId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("auth.GetUserIdFromContext(): %v", err)
-		return
-	}
-
-	result, err := t.todoStore.GetTodoAll(userId)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("GetTodoAll(): %v", err)
+		apiError := FromError(err)
+		w.WriteHeader(apiError.Status)
+		fmt.Fprint(w, apiError.Message)
+		log.Printf("handler: GetTodoAll(): %v", err)
 		return
 	}
 
@@ -200,7 +191,7 @@ func (t *TodoHandler) handleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 			apiError := FromError(err)
 			w.WriteHeader(apiError.Status)
 			fmt.Fprint(w, apiError.Message)
-			log.Printf("UpdateTodoById(): %v", err)
+			log.Printf("handleUpdateTodo(): %v", err)
 			return
 		}
 		json.NewEncoder(w).Encode(&result)
@@ -229,7 +220,7 @@ func (t *TodoHandler) handleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 			apiError := FromError(err)
 			w.WriteHeader(apiError.Status)
 			fmt.Fprint(w, apiError.Message)
-			log.Printf("UpdateTodoById(): %v", err)
+			log.Printf("handleUpdateTodo(): %v", err)
 			return
 		}
 		json.NewEncoder(w).Encode(&result)
@@ -242,7 +233,7 @@ func (t *TodoHandler) handleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 	result, err := t.service.UpdateTodoById(userId, gotTodo.Id, gotTodo)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("UpdateTodoById(): %v", err)
+		log.Printf("handleUpdateTodo(): %v", err)
 		return
 	}
 	json.NewEncoder(w).Encode(&result)
@@ -250,10 +241,10 @@ func (t *TodoHandler) handleUpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 // DELETE /todo
 func (t *TodoHandler) handleDeleteTodo(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(r.URL.Query().Get("id"))
+	todoId, err := uuid.Parse(r.URL.Query().Get("id"))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("DeleteTodo: %v", err)
+		log.Printf("handleDeleteTodo: %v", err)
 		return
 	}
 
@@ -264,10 +255,12 @@ func (t *TodoHandler) handleDeleteTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := t.todoStore.DeleteTodoById(userId, id)
+	result, err := t.service.DeleteTodo(userId, todoId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("DeleteTodo: %v", err)
+		apiError := FromError(err)
+		w.WriteHeader(apiError.Status)
+		fmt.Fprint(w, apiError.Message)
+		log.Printf("handleDeleteTodo: %v", err)
 		return
 	}
 
