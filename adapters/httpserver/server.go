@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"log/slog"
 	"mytodoapp/adapters/httpserver/handler"
 	"mytodoapp/adapters/httpserver/middleware"
 	"mytodoapp/domain/todo"
@@ -14,7 +15,7 @@ type TodoServer struct {
 	http.Handler
 }
 
-func NewTodoServer(todoStore todo.TodoStore, userStore user.UserStore) *TodoServer {
+func NewTodoServer(logger *slog.Logger, todoStore todo.TodoStore, userStore user.UserStore) *TodoServer {
 	server := new(TodoServer)
 
 	mux := http.NewServeMux()
@@ -23,10 +24,13 @@ func NewTodoServer(todoStore todo.TodoStore, userStore user.UserStore) *TodoServ
 	handler.NewAuthHandler(mux, userStore)
 	// setup prometheus
 	mux.Handle("/metrics", promhttp.Handler())
+
+	loggingMiddleware := middleware.LoggingMiddleware(logger)
 	stack := middleware.CreateStack(
 		middleware.AllowCors,
 		middleware.PrometheusMiddleware,
 		middleware.RecoveryMiddleware,
+		loggingMiddleware,
 	)
 	handler := stack(mux)
 

@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	port := ":8080"
 	logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 	})
@@ -22,9 +23,9 @@ func main() {
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbDatabase := os.Getenv("POSTGRES_DB")
-
 	dbConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", dbHost, dbPort, dbDatabase, dbUser, dbPassword)
-	logger.Info("Got DB conn string", slog.String("conn_string", dbConnString))
+	// FIXME: don't expose db password
+	logger.Info("DB conn string", slog.String("conn_string", dbConnString))
 
 	todoStore, err := postgre.NewPostgreTodoStore(dbConnString)
 	if err != nil {
@@ -36,6 +37,7 @@ func main() {
 		logger.Error("Error creating postgre user store:", "err", err)
 		log.Fatalf("Error creating postgre user store: %v", err)
 	}
-	server := httpserver.NewTodoServer(todoStore, userStore)
+	server := httpserver.NewTodoServer(logger, todoStore, userStore)
+	logger.Info("Server is starting", "address", port)
 	log.Fatal(http.ListenAndServe(":8080", server))
 }
