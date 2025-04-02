@@ -12,7 +12,7 @@ import (
 
 func main() {
 	port := ":8080"
-	logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 	})
 	logger := slog.New(logHandler)
